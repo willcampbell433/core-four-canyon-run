@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Core Four Canyon Run, a commemorative offshore tuna trip tracker for July 3-4."
+    />
+    <title>Core Four Canyon Run</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="sea-grid" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="Core Four Canyon Run home">
+        <span class="brand-mark">
+          <svg viewBox="0 0 48 48" role="img" aria-label="Tuna icon">
+            <path
+              d="M5.5 24c7.8-8.2 18.2-11.2 31.3-9l6-5.7v11.1l-6.1 4.1 6.1 4.1v10.1l-6-5.4C23.7 36.1 13.3 33.1 5.5 24Z"
+            />
+            <circle cx="31.8" cy="20.6" r="1.8" />
+          </svg>
+        </span>
+        <span>Core Four Canyon Run</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#tracker">Tracker</a>
+        <a href="#crew">Crew</a>
+        <a href="#log">Log</a>
+        <a href="#recap">Recap</a>
+      </nav>
+      <button class="icon-button" id="tvModeButton" type="button" aria-pressed="false">
+        <span class="icon-screen" aria-hidden="true"></span>
+        TV Mode
+      </button>
+    </header>
+
+    <main id="top">
+      <section class="hero section-shell">
+        <div class="hero-copy">
+          <p class="signal">Brick, NJ to the canyons | July 3-4, 2026</p>
+          <h1>One boat. Four guys. Tuna on the board.</h1>
+          <p class="hero-text">
+            A public-safe trip board for John’s 37 ft Henriques, built for quick phone updates,
+            cabin TV flexing, and one clean recap after the run.
+          </p>
+          <div class="hero-actions">
+            <a class="primary-action" href="#log">Log a moment</a>
+            <a class="secondary-action" href="#tracker">Open tracker</a>
+          </div>
+        </div>
+
+        <div class="mission-panel" aria-label="Trip mission panel">
+          <div class="panel-topline">
+            <span>Mission Clock</span>
+            <strong id="missionStatus">Pre-departure</strong>
+          </div>
+          <div class="timer-grid" aria-live="polite">
+            <div>
+              <span id="daysValue">00</span>
+              <small>days</small>
+            </div>
+            <div>
+              <span id="hoursValue">00</span>
+              <small>hrs</small>
+            </div>
+            <div>
+              <span id="minutesValue">00</span>
+              <small>min</small>
+            </div>
+          </div>
+          <div class="mission-stats">
+            <div>
+              <small>Depart</small>
+              <strong>Jul 3, 1:00 PM</strong>
+            </div>
+            <div>
+              <small>Return</small>
+              <strong>Jul 4 afternoon</strong>
+            </div>
+            <div>
+              <small>Primary</small>
+              <strong>Tuna</strong>
+            </div>
+            <div>
+              <small>Bonus</small>
+              <strong>Mahi mahi</strong>
+            </div>
+          </div>
+          <div class="boat-strip">
+            <span class="boat-icon" aria-hidden="true"></span>
+            <div>
+              <strong>John’s 37 ft Henriques</strong>
+              <small>Starlink online, removable cabin TV mounted, morale questionable but strong.</small>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tracker-grid section-shell" id="tracker">
+        <div class="tracker-card status-card">
+          <div class="section-heading">
+            <span>Trip State</span>
+            <h2>Live-ish offshore board</h2>
+          </div>
+          <div class="phase-display">
+            <small>Current phase</small>
+            <strong id="currentPhase">Loading ice and bad ideas</strong>
+          </div>
+          <div class="phase-buttons" aria-label="Update trip state">
+            <button type="button" data-phase="Running offshore">Run offshore</button>
+            <button type="button" data-phase="Trolling spread out">Trolling</button>
+            <button type="button" data-phase="Jigging marks">Jigging</button>
+            <button type="button" data-phase="Birds working bait">Birds</button>
+            <button type="button" data-phase="Hooked up">Hooked up</button>
+            <button type="button" data-phase="Fish boxed">Fish boxed</button>
+            <button type="button" data-phase="Heading home">Heading home</button>
+          </div>
+          <p class="privacy-note">
+            Public mode: positions are intentionally approximate. Waterproof-grade intel stays private.
+          </p>
+        </div>
+
+        <div class="tracker-card map-card">
+          <div class="section-heading">
+            <span>Approximate Route</span>
+            <h2>Brick to the edge</h2>
+          </div>
+          <div class="chart-map" aria-label="Stylized offshore route map">
+            <svg viewBox="0 0 720 420" role="img" aria-labelledby="mapTitle mapDesc">
+              <title id="mapTitle">Approximate offshore canyon route</title>
+              <desc id="mapDesc">A stylized route from Brick, New Jersey toward offshore canyon water.</desc>
+              <defs>
+                <linearGradient id="routeGradient" x1="0" x2="1">
+                  <stop offset="0%" stop-color="#6df4d4" />
+                  <stop offset="100%" stop-color="#ff8d4d" />
+                </linearGradient>
+              </defs>
+              <path class="depth-line" d="M70 92 C180 126 252 102 356 152 S548 218 668 178" />
+              <path class="depth-line thin" d="M42 300 C186 260 284 330 408 278 S570 244 690 320" />
+              <path class="shelf-line" d="M112 358 C194 276 226 176 340 120 C458 58 562 72 664 46" />
+              <path class="route-line" d="M108 86 C198 124 252 166 314 224 C384 288 472 312 594 258" />
+              <g class="pin home">
+                <circle cx="108" cy="86" r="13" />
+                <text x="130" y="91">Brick</text>
+              </g>
+              <g class="pin">
+                <circle cx="314" cy="224" r="10" />
+                <text x="332" y="229">Birds?</text>
+              </g>
+              <g class="pin hot">
+                <circle cx="594" cy="258" r="15" />
+                <text x="510" y="252">Canyon zone</text>
+              </g>
+              <g class="birds" aria-hidden="true">
+                <path d="M440 122 q16-16 32 0 q16-16 32 0" />
+                <path d="M492 154 q12-12 24 0 q12-12 24 0" />
+                <path d="M372 90 q10-10 20 0 q10-10 20 0" />
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="tracker-card tv-card">
+          <div class="section-heading">
+            <span>Cabin TV</span>
+            <h2>Big-screen mode</h2>
+          </div>
+          <div class="tv-metrics">
+            <div>
+              <small>Catch count</small>
+              <strong id="catchCount">0</strong>
+            </div>
+            <div>
+              <small>Bird watch</small>
+              <strong id="birdStatus">Young eyes armed</strong>
+            </div>
+            <div>
+              <small>Last update</small>
+              <strong id="lastUpdate">Stand by</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="crew-section section-shell" id="crew">
+        <div class="section-heading wide">
+          <span>Core Four</span>
+          <h2>The roster</h2>
+        </div>
+        <div class="crew-grid">
+          <article class="crew-card captain">
+            <span>Captain / Boat Boss</span>
+            <h3>John</h3>
+            <p>Henriques owner, canyon decision-maker, Waterproof intelligence consumer.</p>
+          </article>
+          <article class="crew-card">
+            <span>Young Eyes</span>
+            <h3>Will</h3>
+            <p>Subbing for Phil. Primary assignment: spot seagulls and do not be useless.</p>
+          </article>
+          <article class="crew-card">
+            <span>Deck Crew</span>
+            <h3>Pete</h3>
+            <p>Ready for trolling chaos, jigging rhythm, and cooler discipline.</p>
+          </article>
+          <article class="crew-card">
+            <span>Deck Crew</span>
+            <h3>Bill</h3>
+            <p>Core Four energy, fish-box accountability, steady hands when it gets loud.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="tools-grid section-shell" id="log">
+        <div class="log-panel">
+          <div class="section-heading">
+            <span>Quick Log</span>
+            <h2>Capture the moment</h2>
+          </div>
+          <form id="logForm" class="log-form">
+            <label>
+              Moment
+              <input id="momentInput" name="moment" type="text" placeholder="Birds working off starboard" required />
+            </label>
+            <label>
+              Type
+              <select id="typeInput" name="type">
+                <option>Tuna</option>
+                <option>Mahi mahi</option>
+                <option>Birds</option>
+                <option>Mark</option>
+                <option>Quote</option>
+                <option>Boat life</option>
+              </select>
+            </label>
+            <label>
+              Method
+              <select id="methodInput" name="method">
+                <option>Trolling</option>
+                <option>Jigging</option>
+                <option>Spotting</option>
+                <option>Running</option>
+                <option>Dockside</option>
+              </select>
+            </label>
+            <button class="primary-action full" type="submit">Add to trip log</button>
+          </form>
+        </div>
+
+        <div class="bird-panel">
+          <div class="section-heading">
+            <span>Bird Watch</span>
+            <h2>Young eyes console</h2>
+          </div>
+          <div class="bird-buttons" aria-label="Bird watch quick actions">
+            <button type="button" data-bird="Scattered birds. Worth watching.">Scattered</button>
+            <button type="button" data-bird="Birds diving. Wake John up.">Diving</button>
+            <button type="button" data-bird="Birds sitting. Maybe bait below.">Sitting</button>
+            <button type="button" data-bird="Clean horizon. Keep scanning.">Nothing yet</button>
+          </div>
+          <p id="birdReadout">Young eyes armed. Sunglasses mandatory.</p>
+        </div>
+
+        <div class="timeline-panel">
+          <div class="section-heading">
+            <span>Trip Timeline</span>
+            <h2>Board log</h2>
+          </div>
+          <ol class="timeline" id="timelineList"></ol>
+        </div>
+      </section>
+
+      <section class="recap-section section-shell" id="recap">
+        <div class="section-heading wide">
+          <span>After Action</span>
+          <h2>The recap writes itself</h2>
+        </div>
+        <div class="recap-grid">
+          <div class="score-card">
+            <small>Phil Replacement Grade</small>
+            <strong id="replacementGrade">Pending sea trial</strong>
+          </div>
+          <div class="score-card">
+            <small>Best job</small>
+            <strong>Bird duty</strong>
+          </div>
+          <div class="score-card">
+            <small>House rule</small>
+            <strong>No exact numbers online</strong>
+          </div>
+        </div>
+        <div class="checklist">
+          <h3>Before leaving Brick</h3>
+          <ul>
+            <li>Polarized glasses, hat, sunscreen, rain shell, deck shoes.</li>
+            <li>Bonine/Dramamine plan before the boat starts moving.</li>
+            <li>Battery pack, headlamp, dry bag, spare layer.</li>
+            <li>Water, electrolytes, salty snacks, real food.</li>
+            <li>Respect the Waterproof intel. Approximate public story only.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span>Built for the July 3-4 canyon run.</span>
+      <span>Starlink-powered nonsense, public-safe by design.</span>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>

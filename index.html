@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Core Four Canyon Run, a commemorative offshore tuna trip tracker for July 3-4."
+      content="Core Four Canyon Run, a public-safe offshore tuna trip page for July 3-4."
     />
     <title>Core Four Canyon Run</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -32,35 +32,31 @@
         <span>Core Four Canyon Run</span>
       </a>
       <nav class="nav-links" aria-label="Primary">
-        <a href="#tracker">Tracker</a>
+        <a href="#map">Map</a>
+        <a href="#weather">Weather</a>
         <a href="#crew">Crew</a>
         <a href="#log">Log</a>
-        <a href="#recap">Recap</a>
       </nav>
-      <button class="icon-button" id="tvModeButton" type="button" aria-pressed="false">
-        <span class="icon-screen" aria-hidden="true"></span>
-        TV Mode
-      </button>
     </header>
 
     <main id="top">
       <section class="hero section-shell">
         <div class="hero-copy">
           <p class="signal">Brick, NJ to the canyons | July 3-4, 2026</p>
-          <h1>One boat. Four guys. Tuna on the board.</h1>
+          <h1>Core Four goes offshore.</h1>
           <p class="hero-text">
-            A public-safe trip board for John’s 37 ft Henriques, built for quick phone updates,
-            cabin TV flexing, and one clean recap after the run.
+            A public-safe trip link for John’s 37 ft Henriques: crew roster, approximate route,
+            marine forecast, tides, Windy map, and a light trip log for tuna stories.
           </p>
           <div class="hero-actions">
-            <a class="primary-action" href="#log">Log a moment</a>
-            <a class="secondary-action" href="#tracker">Open tracker</a>
+            <a class="primary-action" href="#map">Open the map</a>
+            <a class="secondary-action" href="#weather">Check conditions</a>
           </div>
         </div>
 
         <div class="mission-panel" aria-label="Trip mission panel">
           <div class="panel-topline">
-            <span>Mission Clock</span>
+            <span>Trip Clock</span>
             <strong id="missionStatus">Pre-departure</strong>
           </div>
           <div class="timer-grid" aria-live="polite">
@@ -99,93 +95,7 @@
             <span class="boat-icon" aria-hidden="true"></span>
             <div>
               <strong>John’s 37 ft Henriques</strong>
-              <small>Starlink online, removable cabin TV mounted, morale questionable but strong.</small>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="tracker-grid section-shell" id="tracker">
-        <div class="tracker-card status-card">
-          <div class="section-heading">
-            <span>Trip State</span>
-            <h2>Live-ish offshore board</h2>
-          </div>
-          <div class="phase-display">
-            <small>Current phase</small>
-            <strong id="currentPhase">Loading ice and bad ideas</strong>
-          </div>
-          <div class="phase-buttons" aria-label="Update trip state">
-            <button type="button" data-phase="Running offshore">Run offshore</button>
-            <button type="button" data-phase="Trolling spread out">Trolling</button>
-            <button type="button" data-phase="Jigging marks">Jigging</button>
-            <button type="button" data-phase="Birds working bait">Birds</button>
-            <button type="button" data-phase="Hooked up">Hooked up</button>
-            <button type="button" data-phase="Fish boxed">Fish boxed</button>
-            <button type="button" data-phase="Heading home">Heading home</button>
-          </div>
-          <p class="privacy-note">
-            Public mode: positions are intentionally approximate. Waterproof-grade intel stays private.
-          </p>
-        </div>
-
-        <div class="tracker-card map-card">
-          <div class="section-heading">
-            <span>Approximate Route</span>
-            <h2>Brick to the edge</h2>
-          </div>
-          <div class="chart-map" aria-label="Stylized offshore route map">
-            <svg viewBox="0 0 720 420" role="img" aria-labelledby="mapTitle mapDesc">
-              <title id="mapTitle">Approximate offshore canyon route</title>
-              <desc id="mapDesc">A stylized route from Brick, New Jersey toward offshore canyon water.</desc>
-              <defs>
-                <linearGradient id="routeGradient" x1="0" x2="1">
-                  <stop offset="0%" stop-color="#6df4d4" />
-                  <stop offset="100%" stop-color="#ff8d4d" />
-                </linearGradient>
-              </defs>
-              <path class="depth-line" d="M70 92 C180 126 252 102 356 152 S548 218 668 178" />
-              <path class="depth-line thin" d="M42 300 C186 260 284 330 408 278 S570 244 690 320" />
-              <path class="shelf-line" d="M112 358 C194 276 226 176 340 120 C458 58 562 72 664 46" />
-              <path class="route-line" d="M108 86 C198 124 252 166 314 224 C384 288 472 312 594 258" />
-              <g class="pin home">
-                <circle cx="108" cy="86" r="13" />
-                <text x="130" y="91">Brick</text>
-              </g>
-              <g class="pin">
-                <circle cx="314" cy="224" r="10" />
-                <text x="332" y="229">Birds?</text>
-              </g>
-              <g class="pin hot">
-                <circle cx="594" cy="258" r="15" />
-                <text x="510" y="252">Canyon zone</text>
-              </g>
-              <g class="birds" aria-hidden="true">
-                <path d="M440 122 q16-16 32 0 q16-16 32 0" />
-                <path d="M492 154 q12-12 24 0 q12-12 24 0" />
-                <path d="M372 90 q10-10 20 0 q10-10 20 0" />
-              </g>
-            </svg>
-          </div>
-        </div>
-
-        <div class="tracker-card tv-card">
-          <div class="section-heading">
-            <span>Cabin TV</span>
-            <h2>Big-screen mode</h2>
-          </div>
-          <div class="tv-metrics">
-            <div>
-              <small>Catch count</small>
-              <strong id="catchCount">0</strong>
-            </div>
-            <div>
-              <small>Bird watch</small>
-              <strong id="birdStatus">Young eyes armed</strong>
-            </div>
-            <div>
-              <small>Last update</small>
-              <strong id="lastUpdate">Stand by</strong>
+              <small>Fun trip page only. Real fishing intel stays with the guys.</small>
             </div>
           </div>
         </div>
@@ -203,40 +113,188 @@
             <p>Henriques owner, canyon decision-maker, Waterproof intelligence consumer.</p>
           </article>
           <article class="crew-card">
-            <span>Young Eyes</span>
+            <span>Phil Substitute</span>
             <h3>Will</h3>
-            <p>Subbing for Phil. Primary assignment: spot seagulls and do not be useless.</p>
+            <p>Guest roster spot. Useful for photos, jokes, spotting life, and not touching the wrong thing.</p>
           </article>
           <article class="crew-card">
-            <span>Deck Crew</span>
+            <span>Core Four</span>
             <h3>Pete</h3>
-            <p>Ready for trolling chaos, jigging rhythm, and cooler discipline.</p>
+            <p>Deck presence, spread awareness, and cooler optimism when the bite gets quiet.</p>
           </article>
           <article class="crew-card">
-            <span>Deck Crew</span>
+            <span>Core Four</span>
             <h3>Bill</h3>
-            <p>Core Four energy, fish-box accountability, steady hands when it gets loud.</p>
+            <p>Steady hands, fish-box accountability, and morale when the run gets long.</p>
           </article>
+        </div>
+      </section>
+
+      <section class="map-section section-shell" id="map">
+        <div class="section-heading wide">
+          <span>Public-Safe Route</span>
+          <h2>Interactive offshore map</h2>
+        </div>
+        <div class="map-layout">
+          <div class="map-panel">
+            <div class="route-map" aria-label="Interactive public-safe map from Brick toward offshore canyon water">
+              <div class="map-controls" aria-label="Map controls">
+                <button type="button" data-map-zoom="in">+</button>
+                <button type="button" data-map-zoom="out">-</button>
+                <button type="button" data-map-zoom="reset">Reset</button>
+              </div>
+              <svg id="tripMap" viewBox="0 0 900 560" role="img" aria-labelledby="mapTitle mapDesc">
+                <title id="mapTitle">Approximate offshore route from Brick to canyon water</title>
+                <desc id="mapDesc">
+                  A public-safe nautical chart style map with approximate route markers.
+                </desc>
+                <defs>
+                  <linearGradient id="waterGlow" x1="0" x2="1" y1="0" y2="1">
+                    <stop offset="0%" stop-color="#0b2f47" />
+                    <stop offset="100%" stop-color="#04111d" />
+                  </linearGradient>
+                  <linearGradient id="routeGlow" x1="0" x2="1">
+                    <stop offset="0%" stop-color="#6df4d4" />
+                    <stop offset="100%" stop-color="#ff8d4d" />
+                  </linearGradient>
+                </defs>
+                <rect width="900" height="560" fill="url(#waterGlow)" />
+                <g class="chart-grid">
+                  <path d="M0 90H900M0 180H900M0 270H900M0 360H900M0 450H900" />
+                  <path d="M120 0V560M240 0V560M360 0V560M480 0V560M600 0V560M720 0V560M840 0V560" />
+                </g>
+                <path
+                  class="coast"
+                  d="M82 52 C135 92 166 126 174 184 C184 250 150 312 188 374 C218 420 266 420 286 474 L286 560 L0 560 L0 0 C30 18 52 30 82 52Z"
+                />
+                <path
+                  class="shelf"
+                  d="M320 520 C362 410 384 318 464 238 C538 164 640 118 812 84"
+                />
+                <path
+                  class="depth depth-one"
+                  d="M260 88 C356 132 438 122 528 170 C626 224 694 286 836 252"
+                />
+                <path
+                  class="depth"
+                  d="M210 424 C316 360 420 390 540 336 C668 276 760 312 870 382"
+                />
+                <path class="route-shadow" d="M178 210 C292 236 374 300 476 378 C570 450 664 472 748 418" />
+                <path class="route" d="M178 210 C292 236 374 300 476 378 C570 450 664 472 748 418" />
+                <g class="marker home" data-point="Brick, NJ departure. Approximate start from the Metedeconk / Brick side.">
+                  <circle cx="178" cy="210" r="16" />
+                  <text x="202" y="216">Brick</text>
+                </g>
+                <g class="marker shelf-marker" data-point="Shelf line context. This is route context only, not a fishing spot.">
+                  <circle cx="476" cy="378" r="14" />
+                  <text x="500" y="384">Shelf</text>
+                </g>
+                <g class="marker canyon-marker" data-point="Canyon zone. Public-safe and intentionally vague.">
+                  <circle cx="748" cy="418" r="19" />
+                  <text x="604" y="424">Canyon zone</text>
+                </g>
+                <g class="compass">
+                  <path d="M790 96 L812 152 L790 140 L768 152Z" />
+                  <text x="783" y="82">N</text>
+                </g>
+                <text class="map-caption" x="44" y="512">Approximate map. Real numbers stay offline.</text>
+              </svg>
+            </div>
+          </div>
+          <aside class="map-notes">
+            <div>
+              <small>Privacy mode</small>
+              <strong>Approximate by design</strong>
+              <p id="mapReadout">Tap a marker. No exact canyon numbers, no live boat position, no private Waterproof intel.</p>
+            </div>
+            <div>
+              <small>Useful view</small>
+              <strong>Route context</strong>
+              <p>Brick departure, shelf line, canyon zone, and rough offshore direction for the group chat.</p>
+            </div>
+            <div>
+              <small>Map controls</small>
+              <strong>Zoom and drag</strong>
+              <p>Works like a normal web map. Great for “where are you guys headed?” without giving away the farm.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="weather-section section-shell" id="weather">
+        <div class="section-heading wide">
+          <span>Conditions</span>
+          <h2>Wind, seas, tides</h2>
+        </div>
+        <div class="conditions-grid">
+          <article class="condition-card primary-condition">
+            <small>NOAA Offshore | Hudson to Baltimore Canyon</small>
+            <h3>Jul 3-4 window</h3>
+            <p>
+              Fri: W to SW 5-15 kt, seas 3-5 ft. Fri night: W/SW 15-25 kt easing W 10-15 kt,
+              seas 3-4 ft, isolated storms. Sat: W 5-10 kt becoming SW 10-20 kt, seas 3-4 ft,
+              isolated storms.
+            </p>
+            <a href="https://forecast.weather.gov/shmrn.php?mz=anz820&syn=anz899" target="_blank" rel="noreferrer">
+              Open NOAA canyon forecast
+            </a>
+          </article>
+          <article class="condition-card">
+            <small>Nearshore / ride-out check</small>
+            <h3>Jersey coast</h3>
+            <p>
+              Check coastal waters before leaving the inlet. The ride out can feel different than the canyon forecast,
+              especially with SW wind against current or afternoon thunderstorms.
+            </p>
+            <a href="https://www.ndbc.noaa.gov/data/Forecasts/FZUS51.KPHI.html" target="_blank" rel="noreferrer">
+              Open NWS coastal waters
+            </a>
+          </article>
+          <article class="condition-card">
+            <small>Metedeconk River tides</small>
+            <h3>Forge Pond station</h3>
+            <ul class="tide-list" id="tideList">
+              <li><strong>Jul 3</strong> H 12:29 AM, L 6:59 AM, H 1:08 PM, L 6:56 PM</li>
+              <li><strong>Jul 4</strong> H 1:07 AM, L 7:33 AM, H 1:49 PM, L 7:34 PM</li>
+            </ul>
+            <a href="https://tidesandcurrents.noaa.gov/noaatidepredictions.html?id=8532703" target="_blank" rel="noreferrer">
+              Open NOAA tide station
+            </a>
+          </article>
+        </div>
+
+        <div class="windy-panel">
+          <div class="section-heading">
+            <span>Windy</span>
+            <h2>Live wind layer</h2>
+          </div>
+          <iframe
+            title="Windy offshore wind forecast"
+            src="https://embed.windy.com/embed2.html?lat=39.45&lon=-73.38&detailLat=39.45&detailLon=-73.38&width=650&height=450&zoom=6&level=surface&overlay=wind&product=ecmwf&menu=&message=true&marker=true&calendar=now&pressure=true&type=map&location=coordinates&detail=true&metricWind=kt&metricTemp=%C2%B0F&radarRange=-1"
+          ></iframe>
+          <a class="windy-link" href="https://www.windy.com/?39.45,-73.38,6" target="_blank" rel="noreferrer">
+            Open this area in Windy
+          </a>
         </div>
       </section>
 
       <section class="tools-grid section-shell" id="log">
         <div class="log-panel">
           <div class="section-heading">
-            <span>Quick Log</span>
-            <h2>Capture the moment</h2>
+            <span>Trip Log</span>
+            <h2>Save the good stuff</h2>
           </div>
           <form id="logForm" class="log-form">
             <label>
               Moment
-              <input id="momentInput" name="moment" type="text" placeholder="Birds working off starboard" required />
+              <input id="momentInput" name="moment" type="text" placeholder="First tuna hit on the troll" required />
             </label>
             <label>
               Type
               <select id="typeInput" name="type">
                 <option>Tuna</option>
                 <option>Mahi mahi</option>
-                <option>Birds</option>
+                <option>Weather</option>
                 <option>Mark</option>
                 <option>Quote</option>
                 <option>Boat life</option>
@@ -247,33 +305,49 @@
               <select id="methodInput" name="method">
                 <option>Trolling</option>
                 <option>Jigging</option>
-                <option>Spotting</option>
                 <option>Running</option>
                 <option>Dockside</option>
+                <option>Other</option>
               </select>
             </label>
             <button class="primary-action full" type="submit">Add to trip log</button>
           </form>
         </div>
 
-        <div class="bird-panel">
+        <div class="status-card tracker-card">
           <div class="section-heading">
-            <span>Bird Watch</span>
-            <h2>Young eyes console</h2>
+            <span>Status</span>
+            <h2>Trip board</h2>
           </div>
-          <div class="bird-buttons" aria-label="Bird watch quick actions">
-            <button type="button" data-bird="Scattered birds. Worth watching.">Scattered</button>
-            <button type="button" data-bird="Birds diving. Wake John up.">Diving</button>
-            <button type="button" data-bird="Birds sitting. Maybe bait below.">Sitting</button>
-            <button type="button" data-bird="Clean horizon. Keep scanning.">Nothing yet</button>
+          <div class="phase-display">
+            <small>Current phase</small>
+            <strong id="currentPhase">Loading ice and bad ideas</strong>
           </div>
-          <p id="birdReadout">Young eyes armed. Sunglasses mandatory.</p>
+          <div class="phase-buttons" aria-label="Update trip state">
+            <button type="button" data-phase="Running offshore">Run offshore</button>
+            <button type="button" data-phase="Trolling spread out">Trolling</button>
+            <button type="button" data-phase="Jigging marks">Jigging</button>
+            <button type="button" data-phase="Hooked up">Hooked up</button>
+            <button type="button" data-phase="Fish boxed">Fish boxed</button>
+            <button type="button" data-phase="Heading home">Heading home</button>
+          </div>
+          <p class="privacy-note">Updates are local to the browser. Good enough for jokes and a trip recap.</p>
         </div>
 
         <div class="timeline-panel">
           <div class="section-heading">
-            <span>Trip Timeline</span>
+            <span>Timeline</span>
             <h2>Board log</h2>
+          </div>
+          <div class="log-metrics">
+            <div>
+              <small>Catch count</small>
+              <strong id="catchCount">0</strong>
+            </div>
+            <div>
+              <small>Last update</small>
+              <strong id="lastUpdate">Stand by</strong>
+            </div>
           </div>
           <ol class="timeline" id="timelineList"></ol>
         </div>
@@ -290,8 +364,8 @@
             <strong id="replacementGrade">Pending sea trial</strong>
           </div>
           <div class="score-card">
-            <small>Best job</small>
-            <strong>Bird duty</strong>
+            <small>Best use</small>
+            <strong>Send to the guys</strong>
           </div>
           <div class="score-card">
             <small>House rule</small>
@@ -301,11 +375,12 @@
         <div class="checklist">
           <h3>Before leaving Brick</h3>
           <ul>
-            <li>Polarized glasses, hat, sunscreen, rain shell, deck shoes.</li>
-            <li>Bonine/Dramamine plan before the boat starts moving.</li>
+            <li>Check Windy, NOAA offshore forecast, and local coastal waters.</li>
+            <li>Check Metedeconk tide timing for the dock/inlet side of the trip.</li>
+            <li>Bring polarized glasses, hat, sunscreen, rain shell, and deck shoes.</li>
             <li>Battery pack, headlamp, dry bag, spare layer.</li>
             <li>Water, electrolytes, salty snacks, real food.</li>
-            <li>Respect the Waterproof intel. Approximate public story only.</li>
+            <li>Respect Waterproof intel. Approximate public story only.</li>
           </ul>
         </div>
       </section>
@@ -313,7 +388,7 @@
 
     <footer class="site-footer">
       <span>Built for the July 3-4 canyon run.</span>
-      <span>Starlink-powered nonsense, public-safe by design.</span>
+      <span>Useful enough to open. Dumb enough to be fun.</span>
     </footer>
 
     <script src="app.js"></script>

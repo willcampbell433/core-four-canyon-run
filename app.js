@@ -3,6 +3,13 @@ const roughReturn = new Date("2026-07-04T16:00:00-04:00");
 const storageKey = "core-four-canyon-run-log";
 const phaseKey = "core-four-canyon-run-phase";
 
+const points = {
+  brick: { lat: 40.0584, lon: -74.1071, label: "Brick, NJ", note: "Departure: Jul 3, 1:00 PM off the Metedeconk." },
+  inlet: { lat: 40.1019, lon: -74.0336, label: "Manasquan Inlet", note: "Out the inlet, then southeast to blue water." },
+  shelf: { lat: 39.78, lon: -73.3, label: "Shelf edge", note: "Water warms and deepens fast past the 30-fathom line." },
+  canyon: { lat: 39.55, lon: -72.85, label: "Canyon grounds", note: "Tuna water. Troll the edges, jig the marks." },
+};
+
 const seedEntries = [
   {
     time: "Jul 3, 1:00 PM",
@@ -47,9 +54,48 @@ const els = {
   form: document.querySelector("#logForm"),
   replacementGrade: document.querySelector("#replacementGrade"),
   tideList: document.querySelector("#tideList"),
-  tripMap: document.querySelector("#tripMap"),
-  mapReadout: document.querySelector("#mapReadout"),
+  runDistance: document.querySelector("#runDistance"),
+  day1Head: document.querySelector("#day1Head"),
+  day1Metrics: document.querySelector("#day1Metrics"),
+  day2Head: document.querySelector("#day2Head"),
+  day2Metrics: document.querySelector("#day2Metrics"),
+  sunMoonList: document.querySelector("#sunMoonList"),
+  photoInput: document.querySelector("#photoInput"),
+  galleryGrid: document.querySelector("#galleryGrid"),
 };
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+/* ---------- Trip clock ---------- */
+
+function renderTimer() {
+  const now = new Date();
+  let diff = departure - now;
+
+  if (now >= departure && now <= roughReturn) {
+    els.missionStatus.textContent = "Trip underway";
+    diff = roughReturn - now;
+  } else if (now > roughReturn) {
+    els.missionStatus.textContent = "Recap mode";
+    diff = 0;
+  } else {
+    els.missionStatus.textContent = "Pre-departure";
+  }
+
+  const totalMinutes = Math.max(0, Math.floor(diff / 60000));
+  els.days.textContent = String(Math.floor(totalMinutes / 1440)).padStart(2, "0");
+  els.hours.textContent = String(Math.floor((totalMinutes % 1440) / 60)).padStart(2, "0");
+  els.minutes.textContent = String(totalMinutes % 60).padStart(2, "0");
+}
+
+/* ---------- Trip log ---------- */
 
 function readEntries() {
   try {
@@ -73,30 +119,6 @@ function setPhase(phase) {
   });
 }
 
-function renderTimer() {
-  const now = new Date();
-  let diff = departure - now;
-
-  if (now >= departure && now <= roughReturn) {
-    els.missionStatus.textContent = "Trip underway";
-    diff = roughReturn - now;
-  } else if (now > roughReturn) {
-    els.missionStatus.textContent = "Recap mode";
-    diff = 0;
-  } else {
-    els.missionStatus.textContent = "Pre-departure";
-  }
-
-  const totalMinutes = Math.max(0, Math.floor(diff / 60000));
-  const days = Math.floor(totalMinutes / 1440);
-  const hours = Math.floor((totalMinutes % 1440) / 60);
-  const minutes = totalMinutes % 60;
-
-  els.days.textContent = String(days).padStart(2, "0");
-  els.hours.textContent = String(hours).padStart(2, "0");
-  els.minutes.textContent = String(minutes).padStart(2, "0");
-}
-
 function renderTimeline() {
   const entries = readEntries();
   els.timeline.innerHTML = entries
@@ -105,7 +127,7 @@ function renderTimeline() {
     .map(
       (entry) => `
         <li>
-          <time>${entry.time}</time>
+          <time>${escapeHtml(entry.time)}</time>
           <div>
             <strong>${escapeHtml(entry.moment)}</strong>
             <span>${escapeHtml(entry.type)} / ${escapeHtml(entry.method)}</span>
@@ -120,64 +142,183 @@ function renderTimeline() {
   els.replacementGrade.textContent = catchCount > 0 ? "Trending useful" : "Pending sea trial";
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+/* ---------- Leaflet map ---------- */
+
+function nmBetween(a, b) {
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const R = 3440.065;
+  const dLat = toRad(b.lat - a.lat);
+  const dLon = toRad(b.lon - a.lon);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
 }
 
 function initMap() {
-  let zoom = 1;
+  const map = L.map("leafletMap", { scrollWheelZoom: false });
+  const route = [points.brick, points.inlet, points.shelf, points.canyon];
 
-  function applyZoom() {
-    els.tripMap.style.transform = `scale(${zoom})`;
+  L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}",
+    {
+      attribution: "Esri Ocean Basemap — GEBCO, NOAA, Garmin",
+      maxZoom: 10,
+    },
+  ).addTo(map);
+
+  const latLngs = route.map((p) => [p.lat, p.lon]);
+  L.polyline(latLngs, {
+    color: "#ff8d4d",
+    weight: 4,
+    dashArray: "4 10",
+    lineCap: "round",
+  }).addTo(map);
+
+  route.forEach((p, i) => {
+    const isEnd = i === 0 || i === route.length - 1;
+    L.circleMarker([p.lat, p.lon], {
+      radius: isEnd ? 10 : 7,
+      color: "#04111d",
+      weight: 3,
+      fillColor: i === route.length - 1 ? "#ff8d4d" : i === 0 ? "#6cbcff" : "#6df4d4",
+      fillOpacity: 1,
+    })
+      .addTo(map)
+      .bindPopup(`<strong>${p.label}</strong><br>${p.note}`);
+  });
+
+  L.circle([points.canyon.lat, points.canyon.lon], {
+    radius: 22000,
+    color: "#ff8d4d",
+    weight: 1.5,
+    fillColor: "#ff8d4d",
+    fillOpacity: 0.12,
+  }).addTo(map);
+
+  map.fitBounds(latLngs, { padding: [36, 36] });
+
+  let total = 0;
+  for (let i = 1; i < route.length; i += 1) total += nmBetween(route[i - 1], route[i]);
+  els.runDistance.textContent = `~${Math.round(total)} nm`;
+}
+
+/* ---------- Live weather (Open-Meteo) ---------- */
+
+function compass(deg) {
+  const dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+  return dirs[Math.round(deg / 22.5) % 16];
+}
+
+function dominantDirection(degrees) {
+  const counts = {};
+  degrees.forEach((deg) => {
+    const dir = compass(deg);
+    counts[dir] = (counts[dir] || 0) + 1;
+  });
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+}
+
+function daySlice(times, values, date) {
+  return values.filter((_, i) => times[i].startsWith(date));
+}
+
+function ftRange(values) {
+  const ft = values.map((m) => m * 3.28084);
+  return `${Math.round(Math.min(...ft))}-${Math.round(Math.max(...ft))} ft`;
+}
+
+function renderWeatherDay(headEl, listEl, wind, gusts, dirs, waves, periods) {
+  const windLine = `${dominantDirection(dirs)} ${Math.round(Math.min(...wind))}-${Math.round(Math.max(...wind))} kt`;
+  headEl.textContent = `${windLine}, seas ${ftRange(waves)}`;
+  listEl.innerHTML = `
+    <li><strong>Wind</strong> ${windLine}</li>
+    <li><strong>Gusts</strong> to ${Math.round(Math.max(...gusts))} kt</li>
+    <li><strong>Waves</strong> ${ftRange(waves)}</li>
+    <li><strong>Period</strong> ~${Math.round(periods.reduce((a, b) => a + b, 0) / periods.length)} sec</li>
+  `;
+}
+
+const MOON_NAMES = [
+  "New moon",
+  "Waxing crescent",
+  "First quarter",
+  "Waxing gibbous",
+  "Full moon",
+  "Waning gibbous",
+  "Last quarter",
+  "Waning crescent",
+];
+
+function moonPhase(date) {
+  const synodic = 29.53058867;
+  const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
+  const age = (((date.getTime() - knownNewMoon) / 86400000) % synodic + synodic) % synodic;
+  const index = Math.round((age / synodic) * 8) % 8;
+  const illumination = Math.round((1 - Math.cos((2 * Math.PI * age) / synodic)) * 50);
+  return { name: MOON_NAMES[index], illumination };
+}
+
+function formatClock(iso) {
+  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+async function refreshWeather() {
+  const { lat, lon } = points.canyon;
+  const dates = ["2026-07-03", "2026-07-04"];
+  const windUrl =
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+    `&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m&daily=sunrise,sunset` +
+    `&wind_speed_unit=kn&timezone=America%2FNew_York&start_date=${dates[0]}&end_date=${dates[1]}`;
+  const marineUrl =
+    `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}` +
+    `&hourly=wave_height,wave_period&timezone=America%2FNew_York&start_date=${dates[0]}&end_date=${dates[1]}`;
+
+  try {
+    const [windRes, marineRes] = await Promise.all([fetch(windUrl), fetch(marineUrl)]);
+    if (!windRes.ok || !marineRes.ok) throw new Error("weather fetch failed");
+    const windData = await windRes.json();
+    const marineData = await marineRes.json();
+
+    const wTimes = windData.hourly.time;
+    const mTimes = marineData.hourly.time;
+
+    [
+      { head: els.day1Head, list: els.day1Metrics, date: dates[0] },
+      { head: els.day2Head, list: els.day2Metrics, date: dates[1] },
+    ].forEach(({ head, list, date }) => {
+      renderWeatherDay(
+        head,
+        list,
+        daySlice(wTimes, windData.hourly.wind_speed_10m, date),
+        daySlice(wTimes, windData.hourly.wind_gusts_10m, date),
+        daySlice(wTimes, windData.hourly.wind_direction_10m, date),
+        daySlice(mTimes, marineData.hourly.wave_height, date),
+        daySlice(mTimes, marineData.hourly.wave_period, date),
+      );
+    });
+
+    const moon = moonPhase(departure);
+    els.sunMoonList.innerHTML = `
+      <li><strong>Sunset Jul 3</strong> ${formatClock(windData.daily.sunset[0])}</li>
+      <li><strong>Sunrise Jul 4</strong> ${formatClock(windData.daily.sunrise[1])}</li>
+      <li><strong>Sunset Jul 4</strong> ${formatClock(windData.daily.sunset[1])}</li>
+      <li><strong>Moon</strong> ${moon.name}, ${moon.illumination}% lit</li>
+    `;
+  } catch {
+    const fallback = "Live feed unavailable. Use the NOAA and Windy links below.";
+    els.day1Head.textContent = fallback;
+    els.day2Head.textContent = fallback;
+    const moon = moonPhase(departure);
+    els.sunMoonList.innerHTML = `
+      <li><strong>Sunset Jul 3</strong> ~8:30 PM</li>
+      <li><strong>Sunrise Jul 4</strong> ~5:35 AM</li>
+      <li><strong>Moon</strong> ${moon.name}, ${moon.illumination}% lit</li>
+    `;
   }
-
-  document.querySelectorAll("[data-map-zoom]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const action = button.dataset.mapZoom;
-      if (action === "in") zoom = Math.min(1.45, zoom + 0.15);
-      if (action === "out") zoom = Math.max(0.85, zoom - 0.15);
-      if (action === "reset") zoom = 1;
-      applyZoom();
-    });
-  });
-
-  document.querySelectorAll("[data-point]").forEach((marker) => {
-    marker.addEventListener("click", () => {
-      els.mapReadout.textContent = marker.dataset.point;
-    });
-    marker.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        els.mapReadout.textContent = marker.dataset.point;
-      }
-    });
-    marker.setAttribute("tabindex", "0");
-    marker.setAttribute("role", "button");
-  });
 }
 
-function groupTides(predictions) {
-  return predictions.reduce((days, prediction) => {
-    const [date, time] = prediction.t.split(" ");
-    const label = date === "2026-07-03" ? "Jul 3" : "Jul 4";
-    const kind = prediction.type === "H" ? "H" : "L";
-    const hour = formatTime(time);
-    days[label] = [...(days[label] || []), `${kind} ${hour}`];
-    return days;
-  }, {});
-}
-
-function renderTides(predictions) {
-  const grouped = groupTides(predictions);
-  els.tideList.innerHTML = Object.entries(grouped)
-    .map(([day, entries]) => `<li><strong>${day}</strong> ${entries.join(", ")}</li>`)
-    .join("");
-}
+/* ---------- Tides ---------- */
 
 function formatTime(time) {
   const [hourRaw, minute] = time.split(":");
@@ -185,6 +326,18 @@ function formatTime(time) {
   const suffix = hour >= 12 ? "PM" : "AM";
   const displayHour = hour % 12 || 12;
   return `${displayHour}:${minute} ${suffix}`;
+}
+
+function renderTides(predictions) {
+  const grouped = predictions.reduce((days, prediction) => {
+    const [date, time] = prediction.t.split(" ");
+    const label = date === "2026-07-03" ? "Jul 3" : "Jul 4";
+    days[label] = [...(days[label] || []), `${prediction.type === "H" ? "H" : "L"} ${formatTime(time)}`];
+    return days;
+  }, {});
+  els.tideList.innerHTML = Object.entries(grouped)
+    .map(([day, entries]) => `<li><strong>${day}</strong> ${entries.join(", ")}</li>`)
+    .join("");
 }
 
 async function refreshTides() {
@@ -199,6 +352,25 @@ async function refreshTides() {
     renderTides(tideFallback);
   }
 }
+
+/* ---------- Photo gallery ---------- */
+
+function initGallery() {
+  els.photoInput.addEventListener("change", () => {
+    [...els.photoInput.files].forEach((file) => {
+      const figure = document.createElement("figure");
+      figure.className = "gallery-photo";
+      const img = document.createElement("img");
+      img.src = URL.createObjectURL(file);
+      img.alt = file.name;
+      figure.appendChild(img);
+      els.galleryGrid.prepend(figure);
+    });
+    els.photoInput.value = "";
+  });
+}
+
+/* ---------- Wire up ---------- */
 
 document.querySelectorAll("[data-phase]").forEach((button) => {
   button.addEventListener("click", () => setPhase(button.dataset.phase));
@@ -219,8 +391,7 @@ els.form.addEventListener("submit", (event) => {
     type: formData.get("type"),
     method: formData.get("method"),
   };
-  const entries = [...readEntries(), entry];
-  writeEntries(entries);
+  writeEntries([...readEntries(), entry]);
   els.form.reset();
   setPhase(`${entry.type} logged`);
   renderTimeline();
@@ -230,5 +401,7 @@ setPhase(localStorage.getItem(phaseKey) || "Loading ice and bad ideas");
 renderTimer();
 renderTimeline();
 initMap();
+refreshWeather();
 refreshTides();
+initGallery();
 setInterval(renderTimer, 30000);

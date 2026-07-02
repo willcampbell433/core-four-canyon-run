@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Core Four Canyon Run, a public-safe offshore tuna trip page for July 3-4."
+      content="Core Four Canyon Run — the offshore tuna trip board for July 3-4. Map, live weather, tides, crew, and trip log."
     />
     <title>Core Four Canyon Run</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -13,6 +13,12 @@
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap"
       rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
@@ -35,21 +41,35 @@
         <a href="#map">Map</a>
         <a href="#weather">Weather</a>
         <a href="#crew">Crew</a>
+        <a href="#species">Fish</a>
         <a href="#log">Log</a>
+        <a href="#gallery">Photos</a>
       </nav>
     </header>
 
     <main id="top">
       <section class="hero section-shell">
+        <div class="wave-band" aria-hidden="true">
+          <svg viewBox="0 0 1440 120" preserveAspectRatio="none">
+            <path
+              class="wave wave-1"
+              d="M0,64 C240,96 480,32 720,56 C960,80 1200,40 1440,64 L1440,120 L0,120 Z"
+            />
+            <path
+              class="wave wave-2"
+              d="M0,80 C240,56 480,104 720,84 C960,64 1200,96 1440,76 L1440,120 L0,120 Z"
+            />
+          </svg>
+        </div>
         <div class="hero-copy">
           <p class="signal">Brick, NJ to the canyons | July 3-4, 2026</p>
           <h1>Core Four goes offshore.</h1>
           <p class="hero-text">
-            A public-safe trip link for John’s 37 ft Henriques: crew roster, approximate route,
-            marine forecast, tides, Windy map, and a light trip log for tuna stories.
+            The trip board for John’s 37 ft Henriques: interactive chart, live wind and wave
+            forecast, tides, bite windows, crew roster, and a log for the stories.
           </p>
           <div class="hero-actions">
-            <a class="primary-action" href="#map">Open the map</a>
+            <a class="primary-action" href="#map">Open the chart</a>
             <a class="secondary-action" href="#weather">Check conditions</a>
           </div>
         </div>
@@ -95,7 +115,7 @@
             <span class="boat-icon" aria-hidden="true"></span>
             <div>
               <strong>John’s 37 ft Henriques</strong>
-              <small>Fun trip page only. Real fishing intel stays with the guys.</small>
+              <small>Jigging and trolling. Starlink aboard.</small>
             </div>
           </div>
         </div>
@@ -110,12 +130,12 @@
           <article class="crew-card captain">
             <span>Captain / Boat Boss</span>
             <h3>John</h3>
-            <p>Henriques owner, canyon decision-maker, Waterproof intelligence consumer.</p>
+            <p>Henriques owner, canyon decision-maker, keeper of the numbers.</p>
           </article>
           <article class="crew-card">
             <span>Phil Substitute</span>
             <h3>Will</h3>
-            <p>Guest roster spot. Useful for photos, jokes, spotting life, and not touching the wrong thing.</p>
+            <p>Guest roster spot. Young eyes on the horizon, photos, jokes, and not touching the wrong thing.</p>
           </article>
           <article class="crew-card">
             <span>Core Four</span>
@@ -132,90 +152,28 @@
 
       <section class="map-section section-shell" id="map">
         <div class="section-heading wide">
-          <span>Public-Safe Route</span>
-          <h2>Interactive offshore map</h2>
+          <span>The Run</span>
+          <h2>Interactive chart</h2>
         </div>
         <div class="map-layout">
           <div class="map-panel">
-            <div class="route-map" aria-label="Interactive public-safe map from Brick toward offshore canyon water">
-              <div class="map-controls" aria-label="Map controls">
-                <button type="button" data-map-zoom="in">+</button>
-                <button type="button" data-map-zoom="out">-</button>
-                <button type="button" data-map-zoom="reset">Reset</button>
-              </div>
-              <svg id="tripMap" viewBox="0 0 900 560" role="img" aria-labelledby="mapTitle mapDesc">
-                <title id="mapTitle">Approximate offshore route from Brick to canyon water</title>
-                <desc id="mapDesc">
-                  A public-safe nautical chart style map with approximate route markers.
-                </desc>
-                <defs>
-                  <linearGradient id="waterGlow" x1="0" x2="1" y1="0" y2="1">
-                    <stop offset="0%" stop-color="#0b2f47" />
-                    <stop offset="100%" stop-color="#04111d" />
-                  </linearGradient>
-                  <linearGradient id="routeGlow" x1="0" x2="1">
-                    <stop offset="0%" stop-color="#6df4d4" />
-                    <stop offset="100%" stop-color="#ff8d4d" />
-                  </linearGradient>
-                </defs>
-                <rect width="900" height="560" fill="url(#waterGlow)" />
-                <g class="chart-grid">
-                  <path d="M0 90H900M0 180H900M0 270H900M0 360H900M0 450H900" />
-                  <path d="M120 0V560M240 0V560M360 0V560M480 0V560M600 0V560M720 0V560M840 0V560" />
-                </g>
-                <path
-                  class="coast"
-                  d="M82 52 C135 92 166 126 174 184 C184 250 150 312 188 374 C218 420 266 420 286 474 L286 560 L0 560 L0 0 C30 18 52 30 82 52Z"
-                />
-                <path
-                  class="shelf"
-                  d="M320 520 C362 410 384 318 464 238 C538 164 640 118 812 84"
-                />
-                <path
-                  class="depth depth-one"
-                  d="M260 88 C356 132 438 122 528 170 C626 224 694 286 836 252"
-                />
-                <path
-                  class="depth"
-                  d="M210 424 C316 360 420 390 540 336 C668 276 760 312 870 382"
-                />
-                <path class="route-shadow" d="M178 210 C292 236 374 300 476 378 C570 450 664 472 748 418" />
-                <path class="route" d="M178 210 C292 236 374 300 476 378 C570 450 664 472 748 418" />
-                <g class="marker home" data-point="Brick, NJ departure. Approximate start from the Metedeconk / Brick side.">
-                  <circle cx="178" cy="210" r="16" />
-                  <text x="202" y="216">Brick</text>
-                </g>
-                <g class="marker shelf-marker" data-point="Shelf line context. This is route context only, not a fishing spot.">
-                  <circle cx="476" cy="378" r="14" />
-                  <text x="500" y="384">Shelf</text>
-                </g>
-                <g class="marker canyon-marker" data-point="Canyon zone. Public-safe and intentionally vague.">
-                  <circle cx="748" cy="418" r="19" />
-                  <text x="604" y="424">Canyon zone</text>
-                </g>
-                <g class="compass">
-                  <path d="M790 96 L812 152 L790 140 L768 152Z" />
-                  <text x="783" y="82">N</text>
-                </g>
-                <text class="map-caption" x="44" y="512">Approximate map. Real numbers stay offline.</text>
-              </svg>
-            </div>
+            <div id="leafletMap" aria-label="Interactive map of the offshore run from Brick toward canyon water"></div>
           </div>
           <aside class="map-notes">
             <div>
-              <small>Privacy mode</small>
-              <strong>Approximate by design</strong>
-              <p id="mapReadout">Tap a marker. No exact canyon numbers, no live boat position, no private Waterproof intel.</p>
+              <small>Departure</small>
+              <strong>Brick, NJ</strong>
+              <p>Off the Metedeconk, out Manasquan Inlet, then point it southeast.</p>
             </div>
             <div>
-              <small>Useful view</small>
-              <strong>Route context</strong>
-              <p>Brick departure, shelf line, canyon zone, and rough offshore direction for the group chat.</p>
+              <small>Run distance</small>
+              <strong id="runDistance">~80 nm</strong>
+              <p id="runTime">Roughly 3.5-4.5 hours each way depending on cruise speed and sea state.</p>
             </div>
             <div>
-              <small>Map controls</small>
-              <strong>Zoom and drag</strong>
-              <p>Works like a normal web map. Great for “where are you guys headed?” without giving away the farm.</p>
+              <small>Destination</small>
+              <strong>Canyon grounds</strong>
+              <p>Warm blue water at the shelf edge. Troll the edges, jig the marks, watch for birds and mahi under anything floating.</p>
             </div>
           </aside>
         </div>
@@ -226,29 +184,25 @@
           <span>Conditions</span>
           <h2>Wind, seas, tides</h2>
         </div>
-        <div class="conditions-grid">
-          <article class="condition-card primary-condition">
-            <small>NOAA Offshore | Hudson to Baltimore Canyon</small>
-            <h3>Jul 3-4 window</h3>
-            <p>
-              Fri: W to SW 5-15 kt, seas 3-5 ft. Fri night: W/SW 15-25 kt easing W 10-15 kt,
-              seas 3-4 ft, isolated storms. Sat: W 5-10 kt becoming SW 10-20 kt, seas 3-4 ft,
-              isolated storms.
-            </p>
-            <a href="https://forecast.weather.gov/shmrn.php?mz=anz820&syn=anz899" target="_blank" rel="noreferrer">
-              Open NOAA canyon forecast
-            </a>
+
+        <div class="live-grid" id="liveGrid">
+          <article class="condition-card live-card">
+            <small>Offshore forecast | Friday Jul 3</small>
+            <h3 id="day1Head">Loading live data…</h3>
+            <ul class="metric-list" id="day1Metrics"></ul>
+          </article>
+          <article class="condition-card live-card">
+            <small>Offshore forecast | Saturday Jul 4</small>
+            <h3 id="day2Head">Loading live data…</h3>
+            <ul class="metric-list" id="day2Metrics"></ul>
           </article>
           <article class="condition-card">
-            <small>Nearshore / ride-out check</small>
-            <h3>Jersey coast</h3>
-            <p>
-              Check coastal waters before leaving the inlet. The ride out can feel different than the canyon forecast,
-              especially with SW wind against current or afternoon thunderstorms.
-            </p>
-            <a href="https://www.ndbc.noaa.gov/data/Forecasts/FZUS51.KPHI.html" target="_blank" rel="noreferrer">
-              Open NWS coastal waters
-            </a>
+            <small>Bite windows</small>
+            <h3>Sun and moon</h3>
+            <ul class="metric-list" id="sunMoonList">
+              <li>Loading sunrise and sunset…</li>
+            </ul>
+            <p class="card-note">First light and dusk are prime on the troll. The overnight jig bite loves a dark moon.</p>
           </article>
           <article class="condition-card">
             <small>Metedeconk River tides</small>
@@ -258,9 +212,24 @@
               <li><strong>Jul 4</strong> H 1:07 AM, L 7:33 AM, H 1:49 PM, L 7:34 PM</li>
             </ul>
             <a href="https://tidesandcurrents.noaa.gov/noaatidepredictions.html?id=8532703" target="_blank" rel="noreferrer">
-              Open NOAA tide station
+              NOAA tide station
             </a>
           </article>
+        </div>
+
+        <div class="forecast-links">
+          <a href="https://forecast.weather.gov/shmrn.php?mz=anz820&syn=anz899" target="_blank" rel="noreferrer">
+            NOAA canyon forecast
+          </a>
+          <a href="https://www.ndbc.noaa.gov/data/Forecasts/FZUS51.KPHI.html" target="_blank" rel="noreferrer">
+            NWS coastal waters
+          </a>
+          <a href="https://marine.rutgers.edu/cool/sat_data/?nothumbs=0&product=sst&region=bigbight" target="_blank" rel="noreferrer">
+            Rutgers SST charts
+          </a>
+          <a href="https://www.windy.com/?sst,39.45,-72.90,7" target="_blank" rel="noreferrer">
+            Windy sea surface temp
+          </a>
         </div>
 
         <div class="windy-panel">
@@ -275,6 +244,55 @@
           <a class="windy-link" href="https://www.windy.com/?39.45,-73.38,6" target="_blank" rel="noreferrer">
             Open this area in Windy
           </a>
+        </div>
+      </section>
+
+      <section class="species-section section-shell" id="species">
+        <div class="section-heading wide">
+          <span>Know Your Target</span>
+          <h2>What might eat the jig</h2>
+        </div>
+        <div class="species-grid">
+          <article class="species-card bluefin">
+            <span>Bluefin tuna</span>
+            <h3>The freight train</h3>
+            <ul>
+              <li><strong>ID:</strong> Dark steel-blue back, short pectoral fins, built like a torpedo.</li>
+              <li><strong>Fight:</strong> Long deep runs. Settle in, keep pressure, let the harness work.</li>
+              <li><strong>Eats:</strong> Trolled bars, jigs on the marks, chunked butterfish at night.</li>
+              <li><strong>Table:</strong> Seared rare or straight sashimi. Ice it fast, bleed it faster.</li>
+            </ul>
+          </article>
+          <article class="species-card yellowfin">
+            <span>Yellowfin tuna</span>
+            <h3>The sprinter</h3>
+            <ul>
+              <li><strong>ID:</strong> Bright yellow sickle fins and a gold stripe down the side.</li>
+              <li><strong>Fight:</strong> Blistering first run, then stubborn circles under the boat.</li>
+              <li><strong>Eats:</strong> Spreader bars, ballyhoo, poppers when they blitz.</li>
+              <li><strong>Table:</strong> Sashimi grade. The canyon classic.</li>
+            </ul>
+          </article>
+          <article class="species-card bigeye">
+            <span>Bigeye tuna</span>
+            <h3>The heavyweight</h3>
+            <ul>
+              <li><strong>ID:</strong> Oversized eye, deeper body, longer pectorals than bluefin.</li>
+              <li><strong>Fight:</strong> Pound for pound the meanest tuna in the canyon. Expect a war.</li>
+              <li><strong>Eats:</strong> Best bite at dusk and dawn, loves a deep-dropped jig or trolled spread in low light.</li>
+              <li><strong>Table:</strong> Fattier than yellowfin. Elite sashimi.</li>
+            </ul>
+          </article>
+          <article class="species-card mahi">
+            <span>Mahi mahi</span>
+            <h3>The acrobat</h3>
+            <ul>
+              <li><strong>ID:</strong> Electric green and gold, blunt forehead on the bulls.</li>
+              <li><strong>Fight:</strong> Jumps, flips, and never quits. Chaos on light tackle.</li>
+              <li><strong>Eats:</strong> Anything near floating structure. Check every lobster pot ball and weedline.</li>
+              <li><strong>Table:</strong> Fish tacos. Non-negotiable.</li>
+            </ul>
+          </article>
         </div>
       </section>
 
@@ -331,7 +349,7 @@
             <button type="button" data-phase="Fish boxed">Fish boxed</button>
             <button type="button" data-phase="Heading home">Heading home</button>
           </div>
-          <p class="privacy-note">Updates are local to the browser. Good enough for jokes and a trip recap.</p>
+          <p class="card-note">Updates save to this phone’s browser. Perfect for the recap.</p>
         </div>
 
         <div class="timeline-panel">
@@ -353,9 +371,31 @@
         </div>
       </section>
 
-      <section class="recap-section section-shell" id="recap">
+      <section class="gallery-section section-shell" id="gallery">
         <div class="section-heading wide">
           <span>After Action</span>
+          <h2>Trip gallery</h2>
+        </div>
+        <p class="gallery-intro">
+          Drop photos here during or after the trip to preview the highlight reel. Best shots get
+          added to the page permanently for the recap.
+        </p>
+        <label class="gallery-drop" for="photoInput">
+          <strong>Tap to add photos</strong>
+          <span>Fish, sunsets, questionable naps. All of it.</span>
+        </label>
+        <input id="photoInput" type="file" accept="image/*" multiple hidden />
+        <div class="gallery-grid" id="galleryGrid">
+          <div class="gallery-slot"><span>First fish</span></div>
+          <div class="gallery-slot"><span>Sunset on the troll</span></div>
+          <div class="gallery-slot"><span>Sunrise bite</span></div>
+          <div class="gallery-slot"><span>The fish box</span></div>
+        </div>
+      </section>
+
+      <section class="recap-section section-shell" id="recap">
+        <div class="section-heading wide">
+          <span>Scoreboard</span>
           <h2>The recap writes itself</h2>
         </div>
         <div class="recap-grid">
@@ -364,23 +404,23 @@
             <strong id="replacementGrade">Pending sea trial</strong>
           </div>
           <div class="score-card">
-            <small>Best use</small>
-            <strong>Send to the guys</strong>
+            <small>Crew</small>
+            <strong>Core Four</strong>
           </div>
           <div class="score-card">
-            <small>House rule</small>
-            <strong>No exact numbers online</strong>
+            <small>Mission</small>
+            <strong>Tuna in the box</strong>
           </div>
         </div>
         <div class="checklist">
           <h3>Before leaving Brick</h3>
           <ul>
-            <li>Check Windy, NOAA offshore forecast, and local coastal waters.</li>
-            <li>Check Metedeconk tide timing for the dock/inlet side of the trip.</li>
-            <li>Bring polarized glasses, hat, sunscreen, rain shell, and deck shoes.</li>
+            <li>Check Windy, NOAA offshore forecast, and coastal waters.</li>
+            <li>Check Metedeconk tide timing for the dock and inlet.</li>
+            <li>Polarized glasses, hat, sunscreen, rain shell, deck shoes.</li>
             <li>Battery pack, headlamp, dry bag, spare layer.</li>
             <li>Water, electrolytes, salty snacks, real food.</li>
-            <li>Respect Waterproof intel. Approximate public story only.</li>
+            <li>Seasick meds the night before, not on the boat.</li>
           </ul>
         </div>
       </section>
@@ -391,6 +431,11 @@
       <span>Useful enough to open. Dumb enough to be fun.</span>
     </footer>
 
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
     <script src="app.js"></script>
   </body>
 </html>

@@ -159,13 +159,25 @@ function initMap() {
   const map = L.map("leafletMap", { scrollWheelZoom: false });
   const route = [points.brick, points.inlet, points.shelf, points.canyon];
 
-  L.tileLayer(
-    "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}",
+  const oceanLayer = L.tileLayer(
+    "https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",
     {
       attribution: "Esri Ocean Basemap — GEBCO, NOAA, Garmin",
       maxZoom: 10,
     },
   ).addTo(map);
+
+  let tileErrors = 0;
+  oceanLayer.on("tileerror", () => {
+    tileErrors += 1;
+    if (tileErrors < 3) return;
+    oceanLayer.off("tileerror");
+    map.removeLayer(oceanLayer);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      attribution: "CARTO / OpenStreetMap",
+      maxZoom: 12,
+    }).addTo(map);
+  });
 
   const latLngs = route.map((p) => [p.lat, p.lon]);
   L.polyline(latLngs, {

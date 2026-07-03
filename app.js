@@ -4,7 +4,7 @@ const storageKey = "core-four-canyon-run-log";
 const phaseKey = "core-four-canyon-run-phase";
 
 const points = {
-  brick: { lat: 40.0584, lon: -74.1071, label: "Brick, NJ", note: "Departure: Jul 3, 1:00 PM off the Metedeconk." },
+  brick: { lat: 40.0649, lon: -74.0881, label: "John's dock", note: "Departure: Jul 3, 1:00 PM off the Metedeconk." },
   inlet: { lat: 40.1019, lon: -74.0336, label: "Manasquan Inlet", note: "Out the inlet, then southeast to blue water." },
   shelf: { lat: 39.78, lon: -73.3, label: "Shelf edge", note: "Water warms and deepens fast past the 30-fathom line." },
   canyon: { lat: 39.55, lon: -72.85, label: "Canyon grounds", note: "Tuna water. Troll the edges, jig the marks." },
@@ -15,7 +15,7 @@ const seedEntries = [
     time: "Jul 3, 1:00 PM",
     type: "Dockside",
     method: "Running",
-    moment: "Push off from Brick. Core Four loaded. Phil replacement clock starts.",
+    moment: "Push off from Brick. Crew loaded, coolers heavy. Guest deckhand clock starts.",
   },
   {
     time: "Jul 3, afternoon",

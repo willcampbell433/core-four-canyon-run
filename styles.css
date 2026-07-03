@@ -376,6 +376,10 @@ small {
   gap: 14px;
 }
 
+.crew-grid {
+  grid-template-columns: repeat(5, 1fr);
+}
+
 .crew-card {
   min-height: 220px;
   padding: 20px;

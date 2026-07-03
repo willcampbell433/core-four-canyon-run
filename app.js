@@ -69,19 +69,12 @@ const seedEntries = [
     method: "Running",
     moment: "Starlink dropped past 15 nm out — 'unsupported location.' Roam unlimited stops at 15 nm; enabled Ocean Mode ($2/GB) in the app and were back online in 10. John FaceTimed Heidi. Off to the races.",
   },
-  {
-    time: "Jul 3, afternoon",
-    type: "Weather",
-    method: "Running",
-    moment: "Check Windy and NOAA before the long part of the run.",
-  },
-  {
-    time: "Jul 3, evening",
-    type: "Boat life",
-    method: "Trolling",
-    moment: "Spread out, eyes up, wait for the chaos.",
-  },
 ];
+
+const removedSeedMoments = new Set([
+  "Check Windy and NOAA before the long part of the run.",
+  "Spread out, eyes up, wait for the chaos.",
+]);
 
 const tideFallback = [
   { t: "2026-07-03 00:29", type: "H" },
@@ -158,7 +151,10 @@ function renderTimer() {
 function readEntries() {
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey));
-    return Array.isArray(parsed) ? parsed : seedEntries;
+    if (!Array.isArray(parsed)) return seedEntries;
+    const cleaned = parsed.filter((entry) => !removedSeedMoments.has(entry.moment));
+    if (cleaned.length !== parsed.length) writeEntries(cleaned);
+    return cleaned;
   } catch {
     return seedEntries;
   }

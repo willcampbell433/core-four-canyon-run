@@ -116,6 +116,7 @@ button {
 .section-shell {
   width: min(var(--max), calc(100% - 32px));
   margin: 0 auto;
+  scroll-margin-top: 96px;
 }
 
 .primary-action,
@@ -391,7 +392,7 @@ small {
 }
 
 .crew-grid {
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .crew-card {
@@ -687,6 +688,16 @@ small {
 
 .tally-list li.leader strong {
   color: var(--orange);
+}
+
+.tally-list li em {
+  color: var(--orange);
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .forecast-links {

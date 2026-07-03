@@ -211,7 +211,7 @@ function renderTally(entries) {
   els.crewTally.innerHTML = crew
     .map((name) => {
       const isLeader = leader > 0 && counts[name] === leader;
-      return `<li${isLeader ? ' class="leader"' : ""}><span>${name}</span><strong>${counts[name]}</strong></li>`;
+      return `<li${isLeader ? ' class="leader"' : ""}><span>${name}</span><strong>${counts[name]}</strong>${isLeader ? "<em>leader</em>" : ""}</li>`;
     })
     .join("");
 }

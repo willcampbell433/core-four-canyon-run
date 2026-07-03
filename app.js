@@ -11,7 +11,7 @@ const points = {
 
 const route = [points.brick, points.inlet, points.shelf, points.canyon];
 
-const crew = ["John", "Phil", "Pete", "Bill", "Will"];
+const crew = ["John", "Bill", "Will"];
 
 const offshoreSpots = [
   {

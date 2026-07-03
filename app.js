@@ -3,10 +3,10 @@ const roughReturn = new Date("2026-07-04T16:00:00-04:00");
 const storageKey = "core-four-canyon-run-log";
 
 const points = {
-  brick: { lat: 40.0649, lon: -74.0881, label: "John's dock", note: "Departure: Jul 3, 12:00 PM off the Metedeconk." },
-  inlet: { lat: 39.7614, lon: -74.1031, label: "Barnegat Inlet (Barnegat Light)", note: "Brielle Bridge was closed for extreme heat, so we ran south down the bay and out Barnegat Inlet by the light." },
+  brick: { lat: 40.0649, lon: -74.0881, label: "John's dock", note: "Departed 12:00 PM off the Metedeconk. Jordan Road bridge opened at 12:30 PM (opens on the half hour)." },
+  inlet: { lat: 39.7614, lon: -74.1031, label: "Barnegat Inlet (Barnegat Light)", note: "Brielle Bridge closed for extreme heat, so we ran south down the bay. Cleared Barnegat Light ~2:00 PM, then pointed southeast." },
   shelf: { lat: 39.6, lon: -73.35, label: "Mid-run", note: "Water warms and deepens fast past the 30-fathom line." },
-  canyon: { lat: 39.117, lon: -72.7, label: "Toms Canyon", note: "Tuna water. Troll the edges, jig the marks." },
+  canyon: { lat: 39.117, lon: -72.7, label: "Toms Canyon", note: "Tuna water. ETA ~6:00 PM (just under 4 hrs from the inlet). Troll the edges, jig the marks." },
 };
 
 const route = [points.brick, points.inlet, points.shelf, points.canyon];
@@ -50,10 +50,16 @@ const seedEntries = [
     moment: "Push off from Brick. Crew loaded, coolers heavy. Guest deckhand clock starts.",
   },
   {
-    time: "Jul 3, midday",
-    type: "Weather",
+    time: "Jul 3, 12:30 PM",
+    type: "Boat life",
     method: "Running",
-    moment: "Brielle Bridge closed for extreme heat. Rerouted south down the bay, out Barnegat Inlet by the light.",
+    moment: "Crossed the Jordan Road bridge in Brick when it opened on the half hour. Brielle Bridge closed for extreme heat, so we ran south down the bay instead.",
+  },
+  {
+    time: "Jul 3, 2:00 PM",
+    type: "Boat life",
+    method: "Running",
+    moment: "Cleared Barnegat Light and pointed southeast. A little under 4 hours to Toms Canyon, ~6:00 PM ETA.",
   },
   {
     time: "Jul 3, ~3 PM",

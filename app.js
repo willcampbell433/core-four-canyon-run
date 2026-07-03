@@ -1,7 +1,6 @@
 const departure = new Date("2026-07-03T12:00:00-04:00");
 const roughReturn = new Date("2026-07-04T16:00:00-04:00");
 const storageKey = "core-four-canyon-run-log";
-const phaseKey = "core-four-canyon-run-phase";
 
 const points = {
   brick: { lat: 40.0649, lon: -74.0881, label: "John's dock", note: "Departure: Jul 3, 12:00 PM off the Metedeconk." },
@@ -86,7 +85,6 @@ const els = {
   hours: document.querySelector("#hoursValue"),
   minutes: document.querySelector("#minutesValue"),
   missionStatus: document.querySelector("#missionStatus"),
-  currentPhase: document.querySelector("#currentPhase"),
   lastUpdate: document.querySelector("#lastUpdate"),
   catchCount: document.querySelector("#catchCount"),
   timeline: document.querySelector("#timelineList"),
@@ -151,9 +149,7 @@ function writeEntries(entries) {
   localStorage.setItem(storageKey, JSON.stringify(entries));
 }
 
-function setPhase(phase) {
-  localStorage.setItem(phaseKey, phase);
-  els.currentPhase.textContent = phase;
+function touchLastUpdate() {
   els.lastUpdate.textContent = new Date().toLocaleTimeString([], {
     hour: "numeric",
     minute: "2-digit",
@@ -590,10 +586,6 @@ function initGallery() {
 
 /* ---------- Wire up ---------- */
 
-document.querySelectorAll("[data-phase]").forEach((button) => {
-  button.addEventListener("click", () => setPhase(button.dataset.phase));
-});
-
 els.form.addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(els.form);
@@ -611,11 +603,10 @@ els.form.addEventListener("submit", (event) => {
   };
   writeEntries([...readEntries(), entry]);
   els.form.reset();
-  setPhase(`${entry.type} logged`);
+  touchLastUpdate();
   renderTimeline();
 });
 
-setPhase(localStorage.getItem(phaseKey) || "Loading ice and bad ideas");
 renderTimer();
 renderTimeline();
 initMap();

@@ -11,6 +11,8 @@ const points = {
 
 const route = [points.brick, points.inlet, points.shelf, points.canyon];
 
+const crew = ["John", "Phil", "Pete", "Bill", "Will"];
+
 const offshoreSpots = [
   {
     lat: 39.6826,
@@ -106,6 +108,11 @@ const els = {
   runDistance: document.querySelector("#runDistance"),
   locateButton: document.querySelector("#locateButton"),
   locationStatus: document.querySelector("#locationStatus"),
+  etaReadout: document.querySelector("#etaReadout"),
+  crewTally: document.querySelector("#crewTally"),
+  buoyHead: document.querySelector("#buoyHead"),
+  buoyMetrics: document.querySelector("#buoyMetrics"),
+  buoyNote: document.querySelector("#buoyNote"),
   day1Head: document.querySelector("#day1Head"),
   day1Metrics: document.querySelector("#day1Metrics"),
   day2Head: document.querySelector("#day2Head"),
@@ -179,7 +186,7 @@ function renderTimeline() {
           <time>${escapeHtml(entry.time)}</time>
           <div>
             <strong>${escapeHtml(entry.moment)}</strong>
-            <span>${escapeHtml(entry.type)} / ${escapeHtml(entry.method)}</span>
+            <span>${escapeHtml(entry.type)} / ${escapeHtml(entry.method)}${entry.angler ? ` / ${escapeHtml(entry.angler)}` : ""}</span>
           </div>
         </li>
       `,
@@ -189,6 +196,24 @@ function renderTimeline() {
   const catchCount = entries.filter((entry) => /tuna|mahi/i.test(entry.type)).length;
   els.catchCount.textContent = String(catchCount);
   els.replacementGrade.textContent = catchCount > 0 ? "Trending useful" : "Pending sea trial";
+  renderTally(entries);
+}
+
+function renderTally(entries) {
+  if (!els.crewTally) return;
+  const counts = Object.fromEntries(crew.map((name) => [name, 0]));
+  entries.forEach((entry) => {
+    if (/tuna|mahi/i.test(entry.type) && entry.angler && counts[entry.angler] !== undefined) {
+      counts[entry.angler] += 1;
+    }
+  });
+  const leader = Math.max(...crew.map((name) => counts[name]));
+  els.crewTally.innerHTML = crew
+    .map((name) => {
+      const isLeader = leader > 0 && counts[name] === leader;
+      return `<li${isLeader ? ' class="leader"' : ""}><span>${name}</span><strong>${counts[name]}</strong></li>`;
+    })
+    .join("");
 }
 
 /* ---------- Leaflet map ---------- */
@@ -202,6 +227,25 @@ function nmBetween(a, b) {
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+function updateEta(remainingNm, speedMs) {
+  if (!els.etaReadout) return;
+  if (remainingNm < 1) {
+    els.etaReadout.textContent = "At Toms Canyon — lines in.";
+    return;
+  }
+  const kt = Number.isFinite(speedMs) && speedMs !== null ? speedMs * 1.94384 : null;
+  let etaText = "";
+  if (kt && kt > 1) {
+    const hours = remainingNm / kt;
+    const eta = new Date(Date.now() + hours * 3600000);
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    const clock = eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    etaText = ` | ${h}h ${String(m).padStart(2, "0")}m out, ETA ${clock}`;
+  }
+  els.etaReadout.textContent = `${remainingNm.toFixed(1)} nm to Toms Canyon${etaText}`;
 }
 
 function initMap() {
@@ -354,6 +398,8 @@ function initLocationPin(map, routeLatLngs) {
     const course = Number.isFinite(heading) && heading !== null ? ` | ${compass(heading)} ${Math.round(heading)}°` : "";
     els.locationStatus.textContent =
       `Live: ${latitude.toFixed(4)}, ${longitude.toFixed(4)} (±${Math.round(accuracy)} m)${knots}${course}`;
+
+    updateEta(nmBetween({ lat: latitude, lon: longitude }, points.canyon), speed);
     locationMarker.bindPopup(
       `<strong>Ofishal Business</strong><br>${latitude.toFixed(4)}, ${longitude.toFixed(4)}<br>GPS accuracy: ~${Math.round(accuracy)} m`,
     );
@@ -504,6 +550,81 @@ async function refreshWeather() {
   }
 }
 
+/* ---------- Live buoy (NDBC 44066 Texas Tower) ---------- */
+
+async function refreshBuoy() {
+  if (!els.buoyHead) return;
+  try {
+    const res = await fetch("https://www.ndbc.noaa.gov/data/realtime2/44066.txt");
+    if (!res.ok) throw new Error("ndbc request failed");
+    const text = await res.text();
+    const row = text
+      .trim()
+      .split("\n")
+      .find((line) => !line.startsWith("#"));
+    if (!row) throw new Error("no buoy data");
+    const c = row.trim().split(/\s+/);
+    const num = (v) => (v === undefined || v === "MM" ? null : Number(v));
+    const wtmp = num(c[14]);
+    const wvht = num(c[8]);
+    const wspd = num(c[6]);
+    const gst = num(c[7]);
+    const wdir = num(c[5]);
+
+    if (wtmp === null && wvht === null && wspd === null) throw new Error("buoy fields empty");
+
+    const waterF = wtmp === null ? null : (wtmp * 9) / 5 + 32;
+    const waveFt = wvht === null ? null : wvht * 3.28084;
+    const windKt = wspd === null ? null : wspd * 1.94384;
+    const gustKt = gst === null ? null : gst * 1.94384;
+    const obs = `${c[1]}/${c[2]} ${c[3]}:${c[4]} UTC`;
+
+    els.buoyHead.textContent = waterF === null ? "Buoy 44066 reporting" : `${waterF.toFixed(1)}°F water`;
+    els.buoyMetrics.innerHTML = `
+      <li><strong>Water</strong> ${waterF === null ? "n/a" : `${waterF.toFixed(1)}°F`}</li>
+      <li><strong>Waves</strong> ${waveFt === null ? "n/a" : `${waveFt.toFixed(1)} ft`}</li>
+      <li><strong>Wind</strong> ${windKt === null ? "n/a" : `${wdir === null ? "" : `${compass(wdir)} `}${Math.round(windKt)} kt`}</li>
+      <li><strong>Gusts</strong> ${gustKt === null ? "n/a" : `to ${Math.round(gustKt)} kt`}</li>
+    `;
+    els.buoyNote.textContent = `Observed at buoy 44066, ${obs}. Water temp is the tuna tell.`;
+  } catch {
+    buoyFallback();
+  }
+}
+
+async function buoyFallback() {
+  const { lat, lon } = points.canyon;
+  try {
+    const marineUrl =
+      `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}` +
+      `&current=sea_surface_temperature,wave_height&timezone=America%2FNew_York`;
+    const windUrl =
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+      `&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kn&timezone=America%2FNew_York`;
+    const [marineRes, windRes] = await Promise.all([fetch(marineUrl), fetch(windUrl)]);
+    if (!marineRes.ok || !windRes.ok) throw new Error("fallback fetch failed");
+    const marine = (await marineRes.json()).current;
+    const wind = (await windRes.json()).current;
+
+    const sstC = marine.sea_surface_temperature;
+    const waveM = marine.wave_height;
+    const waterF = sstC === null || sstC === undefined ? null : (sstC * 9) / 5 + 32;
+
+    els.buoyHead.textContent = waterF === null ? "Live canyon conditions" : `${waterF.toFixed(1)}°F water`;
+    els.buoyMetrics.innerHTML = `
+      <li><strong>Water</strong> ${waterF === null ? "n/a" : `${waterF.toFixed(1)}°F`}</li>
+      <li><strong>Waves</strong> ${waveM === null || waveM === undefined ? "n/a" : `${(waveM * 3.28084).toFixed(1)} ft`}</li>
+      <li><strong>Wind</strong> ${compass(wind.wind_direction_10m)} ${Math.round(wind.wind_speed_10m)} kt</li>
+      <li><strong>Gusts</strong> to ${Math.round(wind.wind_gusts_10m)} kt</li>
+    `;
+    els.buoyNote.textContent = "Modeled canyon conditions (Open-Meteo). Buoy 44066 feed was unreachable.";
+  } catch {
+    els.buoyHead.textContent = "Buoy feed unavailable";
+    els.buoyMetrics.innerHTML = "<li>Check NDBC buoy 44066 directly for water temp and seas.</li>";
+    els.buoyNote.textContent = "";
+  }
+}
+
 /* ---------- Tides ---------- */
 
 function formatTime(time) {
@@ -572,6 +693,7 @@ els.form.addEventListener("submit", (event) => {
     moment: formData.get("moment"),
     type: formData.get("type"),
     method: formData.get("method"),
+    angler: formData.get("angler") || "",
   };
   writeEntries([...readEntries(), entry]);
   els.form.reset();
@@ -583,6 +705,7 @@ renderTimer();
 renderTimeline();
 initMap();
 refreshWeather();
+refreshBuoy();
 refreshTides();
 initGallery();
 setInterval(renderTimer, 30000);

@@ -622,6 +622,73 @@ small {
   line-height: 1.5;
 }
 
+.eta-readout {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(109, 244, 212, 0.28);
+  border-radius: var(--radius);
+  background: rgba(109, 244, 212, 0.08);
+  color: var(--seafoam);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.crew-tally {
+  margin-top: 14px;
+}
+
+.crew-tally small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tally-list {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tally-list li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tally-list li span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tally-list li strong {
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.tally-list li.leader {
+  border-color: var(--orange);
+  background: rgba(255, 141, 77, 0.14);
+}
+
+.tally-list li.leader strong {
+  color: var(--orange);
+}
+
 .forecast-links {
   display: flex;
   flex-wrap: wrap;

@@ -218,6 +218,7 @@
               <small>Boat pin</small>
               <strong>Live location</strong>
               <p id="locationStatus">Start live tracking to follow the boat on the chart in real time.</p>
+              <p id="etaReadout" class="eta-readout">Distance and ETA to Toms Canyon appear once tracking starts.</p>
               <button class="map-button" id="locateButton" type="button">Start live location</button>
             </div>
           </aside>
@@ -274,6 +275,12 @@
         </div>
 
         <div class="live-grid" id="liveGrid">
+          <article class="condition-card live-card">
+            <small>Buoy 44066 | Texas Tower</small>
+            <h3 id="buoyHead">Loading buoy…</h3>
+            <ul class="metric-list" id="buoyMetrics"></ul>
+            <p class="card-note" id="buoyNote">Observed offshore near the canyons. Water temp is the tuna tell.</p>
+          </article>
           <article class="condition-card live-card">
             <small>Offshore forecast | Friday Jul 3</small>
             <h3 id="day1Head">Loading live data…</h3>
@@ -421,6 +428,17 @@
                 <option>Other</option>
               </select>
             </label>
+            <label>
+              Angler
+              <select id="anglerInput" name="angler">
+                <option value="">Crew</option>
+                <option>John</option>
+                <option>Phil</option>
+                <option>Pete</option>
+                <option>Bill</option>
+                <option>Will</option>
+              </select>
+            </label>
             <button class="primary-action full" type="submit">Add to trip log</button>
           </form>
         </div>
@@ -439,6 +457,10 @@
               <small>Last update</small>
               <strong id="lastUpdate">Stand by</strong>
             </div>
+          </div>
+          <div class="crew-tally">
+            <small>Catch tally by angler</small>
+            <ul class="tally-list" id="crewTally"></ul>
           </div>
           <ol class="timeline" id="timelineList"></ol>
         </div>

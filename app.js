@@ -56,6 +56,12 @@ const seedEntries = [
     moment: "Brielle Bridge closed for extreme heat. Rerouted south down the bay, out Barnegat Inlet by the light.",
   },
   {
+    time: "Jul 3, ~3 PM",
+    type: "Boat life",
+    method: "Running",
+    moment: "Starlink dropped past 15 nm out — 'unsupported location.' Roam unlimited stops at 15 nm; enabled Ocean Mode ($2/GB) in the app and were back online in 10. John FaceTimed Heidi. Off to the races.",
+  },
+  {
     time: "Jul 3, afternoon",
     type: "Weather",
     method: "Running",

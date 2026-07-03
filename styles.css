@@ -688,22 +688,44 @@ small {
 }
 
 .crew-tally {
-  margin-top: 14px;
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid rgba(255, 141, 77, 0.28);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, rgba(255, 141, 77, 0.18), transparent 55%),
+    rgba(255, 255, 255, 0.05);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.18);
 }
 
-.crew-tally small {
+.leaderboard-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.leaderboard-header small {
   color: var(--muted);
   font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 900;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+.leaderboard-header strong {
+  font-family: "Space Grotesk", Inter, sans-serif;
+  color: #f6fbff;
+  font-size: 1.35rem;
+  line-height: 1;
 }
 
 .tally-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-  margin: 10px 0 0;
+  gap: 10px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -712,11 +734,13 @@ small {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 10px 4px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  justify-content: center;
+  gap: 4px;
+  min-height: 92px;
+  padding: 12px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(4, 17, 29, 0.55);
 }
 
 .tally-list li span {
@@ -729,13 +753,15 @@ small {
 
 .tally-list li strong {
   font-family: "Space Grotesk", Inter, sans-serif;
-  font-size: 1.5rem;
+  font-size: 2.45rem;
   line-height: 1;
 }
 
 .tally-list li.leader {
   border-color: var(--orange);
-  background: rgba(255, 141, 77, 0.14);
+  background:
+    linear-gradient(135deg, rgba(255, 141, 77, 0.24), transparent 60%),
+    rgba(255, 141, 77, 0.12);
 }
 
 .tally-list li.leader strong {
@@ -744,12 +770,16 @@ small {
 
 .tally-list li em {
   color: var(--orange);
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   font-style: normal;
   font-weight: 900;
   letter-spacing: 0.08em;
   line-height: 1;
   text-transform: uppercase;
+}
+
+.crew-tally + .log-metrics {
+  margin-top: 14px;
 }
 
 .forecast-links {
@@ -1336,6 +1366,12 @@ option {
   }
 
   .panel-topline {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .leaderboard-header {
     align-items: flex-start;
     flex-direction: column;
     gap: 6px;

@@ -6,8 +6,8 @@ const phaseKey = "core-four-canyon-run-phase";
 const points = {
   brick: { lat: 40.0649, lon: -74.0881, label: "John's dock", note: "Departure: Jul 3, 12:00 PM off the Metedeconk." },
   inlet: { lat: 40.1019, lon: -74.0336, label: "Manasquan Inlet", note: "Out the inlet, then southeast to blue water." },
-  shelf: { lat: 39.78, lon: -73.3, label: "Shelf edge", note: "Water warms and deepens fast past the 30-fathom line." },
-  canyon: { lat: 39.55, lon: -72.85, label: "Canyon grounds", note: "Tuna water. Troll the edges, jig the marks." },
+  shelf: { lat: 39.6, lon: -73.35, label: "Mid-run", note: "Water warms and deepens fast past the 30-fathom line." },
+  canyon: { lat: 39.117, lon: -72.7, label: "Toms Canyon", note: "Tuna water. Troll the edges, jig the marks." },
 };
 
 const seedEntries = [

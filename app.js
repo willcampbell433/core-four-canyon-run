@@ -13,6 +13,12 @@ const route = [points.brick, points.inlet, points.shelf, points.canyon];
 
 const crew = ["John", "Bill", "Will"];
 
+const onboardConditions = {
+  waterTempF: 76.9,
+  source: "John's SIMRAD",
+  observed: "Jul 3, ~4:45 PM",
+};
+
 const offshoreSpots = [
   {
     lat: 39.6826,
@@ -74,6 +80,12 @@ const seedEntries = [
     type: "Boat life",
     method: "Other",
     moment: "Official catches go on John's Waterpoof app first so the fish are publicly logged. This board is for fun, and Waterpoof activity can help steer moves if nearby boats light up.",
+  },
+  {
+    time: "Jul 3, ~4:45 PM",
+    type: "Conditions",
+    method: "Other",
+    moment: "John's SIMRAD showed 76.9°F ocean water. That onboard reading is better than the modeled SST; NDBC 44066's current feed was unreachable.",
   },
 ];
 
@@ -617,14 +629,22 @@ async function buoyFallback() {
     const waveM = marine.wave_height;
     const waterF = sstC === null || sstC === undefined ? null : (sstC * 9) / 5 + 32;
 
-    els.buoyHead.textContent = waterF === null ? "Live canyon conditions" : `${waterF.toFixed(1)}°F water`;
+    const hasOnboardWater = onboardConditions.waterTempF !== null && onboardConditions.waterTempF !== undefined;
+    els.buoyHead.textContent = hasOnboardWater
+      ? `${onboardConditions.waterTempF.toFixed(1)}°F water`
+      : waterF === null
+        ? "Live canyon conditions"
+        : `${waterF.toFixed(1)}°F water`;
     els.buoyMetrics.innerHTML = `
-      <li><strong>Water</strong> ${waterF === null ? "n/a" : `${waterF.toFixed(1)}°F`}</li>
+      <li><strong>SIMRAD</strong> ${hasOnboardWater ? `${onboardConditions.waterTempF.toFixed(1)}°F` : "n/a"}</li>
+      <li><strong>Model SST</strong> ${waterF === null ? "n/a" : `${waterF.toFixed(1)}°F`}</li>
       <li><strong>Waves</strong> ${waveM === null || waveM === undefined ? "n/a" : `${(waveM * 3.28084).toFixed(1)} ft`}</li>
       <li><strong>Wind</strong> ${compass(wind.wind_direction_10m)} ${Math.round(wind.wind_speed_10m)} kt</li>
       <li><strong>Gusts</strong> to ${Math.round(wind.wind_gusts_10m)} kt</li>
     `;
-    els.buoyNote.textContent = "Modeled canyon conditions (Open-Meteo). Buoy 44066 feed was unreachable.";
+    els.buoyNote.textContent =
+      `${onboardConditions.source} reading from ${onboardConditions.observed}. ` +
+      "Waves/wind are modeled canyon conditions (Open-Meteo); buoy 44066's current feed was unreachable.";
   } catch {
     els.buoyHead.textContent = "Buoy feed unavailable";
     els.buoyMetrics.innerHTML = "<li>Check NDBC buoy 44066 directly for water temp and seas.</li>";

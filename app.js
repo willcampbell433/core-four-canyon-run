@@ -19,6 +19,25 @@ const onboardConditions = {
   observed: "Jul 3, ~4:45 PM",
 };
 
+const weatherFallback = {
+  day1: {
+    head: "Model feed slow - check NOAA/Windy",
+    metrics: [
+      ["Water", "SIMRAD 76.9°F"],
+      ["Plan", "Watch temp breaks, weedlines, birds, and bait"],
+      ["Primary source", "Use onboard instruments until data returns"],
+    ],
+  },
+  day2: {
+    head: "Model feed slow - use offshore links",
+    metrics: [
+      ["Forecast", "Use NOAA canyon forecast + Windy below"],
+      ["Tides", "Metedeconk tides still listed separately"],
+      ["Reminder", "Official catches go to Waterpoof first"],
+    ],
+  },
+};
+
 const offshoreSpots = [
   {
     lat: 39.6826,
@@ -275,6 +294,13 @@ function updateEta(remainingNm, speedMs) {
 }
 
 function initMap() {
+  if (typeof L === "undefined") {
+    if (els.locationStatus) {
+      els.locationStatus.textContent = "Map library did not load. Conditions and trip log still work.";
+    }
+    return;
+  }
+
   const map = L.map("leafletMap", { scrollWheelZoom: false });
 
   const oceanLayer = L.tileLayer(
@@ -522,6 +548,27 @@ function formatClock(iso) {
   return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
+async function fetchWithTimeout(url, options = {}, timeoutMs = 9000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function renderMetricList(listEl, metrics) {
+  listEl.innerHTML = metrics.map(([label, value]) => `<li><strong>${label}</strong> ${value}</li>`).join("");
+}
+
+function renderWeatherFallback() {
+  els.day1Head.textContent = weatherFallback.day1.head;
+  renderMetricList(els.day1Metrics, weatherFallback.day1.metrics);
+  els.day2Head.textContent = weatherFallback.day2.head;
+  renderMetricList(els.day2Metrics, weatherFallback.day2.metrics);
+}
+
 async function refreshWeather() {
   const { lat, lon } = points.canyon;
   const dates = ["2026-07-03", "2026-07-04"];
@@ -534,7 +581,10 @@ async function refreshWeather() {
     `&hourly=wave_height,wave_period&timezone=America%2FNew_York&start_date=${dates[0]}&end_date=${dates[1]}`;
 
   try {
-    const [windRes, marineRes] = await Promise.all([fetch(windUrl), fetch(marineUrl)]);
+    const [windRes, marineRes] = await Promise.all([
+      fetchWithTimeout(windUrl, {}, 9000),
+      fetchWithTimeout(marineUrl, {}, 9000),
+    ]);
     if (!windRes.ok || !marineRes.ok) throw new Error("weather fetch failed");
     const windData = await windRes.json();
     const marineData = await marineRes.json();
@@ -565,9 +615,7 @@ async function refreshWeather() {
       <li><strong>Moon</strong> ${moon.name}, ${moon.illumination}% lit</li>
     `;
   } catch {
-    const fallback = "Live feed unavailable. Use the NOAA and Windy links below.";
-    els.day1Head.textContent = fallback;
-    els.day2Head.textContent = fallback;
+    renderWeatherFallback();
     const moon = moonPhase(departure);
     els.sunMoonList.innerHTML = `
       <li><strong>Sunset Jul 3</strong> ~8:30 PM</li>
@@ -582,7 +630,7 @@ async function refreshWeather() {
 async function refreshBuoy() {
   if (!els.buoyHead) return;
   try {
-    const res = await fetch("https://www.ndbc.noaa.gov/data/realtime2/44066.txt");
+    const res = await fetchWithTimeout("https://www.ndbc.noaa.gov/data/realtime2/44066.txt", {}, 8000);
     if (!res.ok) throw new Error("ndbc request failed");
     const text = await res.text();
     const row = text
@@ -615,7 +663,7 @@ async function refreshBuoy() {
     `;
     els.buoyNote.textContent = `Observed at buoy 44066, ${obs}. Water temp is the tuna tell.`;
   } catch {
-    buoyFallback();
+    await buoyFallback();
   }
 }
 
@@ -628,7 +676,10 @@ async function buoyFallback() {
     const windUrl =
       `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
       `&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kn&timezone=America%2FNew_York`;
-    const [marineRes, windRes] = await Promise.all([fetch(marineUrl), fetch(windUrl)]);
+    const [marineRes, windRes] = await Promise.all([
+      fetchWithTimeout(marineUrl, {}, 8000),
+      fetchWithTimeout(windUrl, {}, 8000),
+    ]);
     if (!marineRes.ok || !windRes.ok) throw new Error("fallback fetch failed");
     const marine = (await marineRes.json()).current;
     const wind = (await windRes.json()).current;
@@ -654,9 +705,14 @@ async function buoyFallback() {
       `${onboardConditions.source} reading from ${onboardConditions.observed}. ` +
       "Waves/wind are modeled canyon conditions (Open-Meteo); buoy 44066's current feed was unreachable.";
   } catch {
-    els.buoyHead.textContent = "Buoy feed unavailable";
-    els.buoyMetrics.innerHTML = "<li>Check NDBC buoy 44066 directly for water temp and seas.</li>";
-    els.buoyNote.textContent = "";
+    els.buoyHead.textContent = `${onboardConditions.waterTempF.toFixed(1)}°F water`;
+    renderMetricList(els.buoyMetrics, [
+      ["SIMRAD", `${onboardConditions.waterTempF.toFixed(1)}°F`],
+      ["Buoy 44066", "unreachable"],
+      ["Model feed", "slow/offline"],
+    ]);
+    els.buoyNote.textContent =
+      `${onboardConditions.source} reading from ${onboardConditions.observed}. Check NDBC/NOAA links when Starlink catches up.`;
   }
 }
 
@@ -686,7 +742,7 @@ async function refreshTides() {
   const url =
     "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=core-four-canyon-run&begin_date=20260703&end_date=20260704&datum=MLLW&station=8532703&time_zone=lst_ldt&units=english&interval=hilo&format=json";
   try {
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url, {}, 8000);
     if (!response.ok) throw new Error("NOAA tide request failed");
     const data = await response.json();
     if (Array.isArray(data.predictions)) renderTides(data.predictions);
@@ -698,6 +754,7 @@ async function refreshTides() {
 /* ---------- Photo gallery ---------- */
 
 function initGallery() {
+  if (!els.photoInput || !els.galleryGrid) return;
   els.photoInput.addEventListener("change", () => {
     [...els.photoInput.files].forEach((file) => {
       const figure = document.createElement("figure");
@@ -736,11 +793,22 @@ els.form.addEventListener("submit", (event) => {
   renderTimeline();
 });
 
-renderTimer();
-renderTimeline();
-initMap();
-refreshWeather();
-refreshBuoy();
-refreshTides();
-initGallery();
+function runStartupTask(name, task) {
+  try {
+    const result = task();
+    if (result && typeof result.catch === "function") {
+      result.catch((error) => console.warn(`${name} failed`, error));
+    }
+  } catch (error) {
+    console.warn(`${name} failed`, error);
+  }
+}
+
+runStartupTask("timer", renderTimer);
+runStartupTask("timeline", renderTimeline);
+runStartupTask("weather", refreshWeather);
+runStartupTask("buoy", refreshBuoy);
+runStartupTask("tides", refreshTides);
+runStartupTask("map", initMap);
+runStartupTask("gallery", initGallery);
 setInterval(renderTimer, 30000);

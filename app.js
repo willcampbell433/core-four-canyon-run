@@ -276,8 +276,74 @@ function initMap() {
 function initLocationPin(map, routeLatLngs) {
   if (!els.locateButton || !els.locationStatus) return;
 
+  let watchId = null;
   let locationMarker;
   let accuracyCircle;
+  let firstFix = true;
+  const trail = [];
+  const trailLine = L.polyline([], {
+    color: "#6df4d4",
+    weight: 3,
+    opacity: 0.7,
+    lineCap: "round",
+  }).addTo(map);
+
+  function stopTracking() {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+    els.locateButton.textContent = "Start live location";
+  }
+
+  function onPosition(position) {
+    const { latitude, longitude, accuracy, speed, heading } = position.coords;
+    const latLng = [latitude, longitude];
+
+    if (locationMarker) locationMarker.remove();
+    if (accuracyCircle) accuracyCircle.remove();
+
+    accuracyCircle = L.circle(latLng, {
+      radius: accuracy,
+      color: "#6df4d4",
+      weight: 1,
+      fillColor: "#6df4d4",
+      fillOpacity: 0.08,
+    }).addTo(map);
+
+    locationMarker = L.circleMarker(latLng, {
+      radius: 9,
+      color: "#04111d",
+      weight: 3,
+      fillColor: "#6df4d4",
+      fillOpacity: 1,
+    }).addTo(map);
+
+    trail.push(latLng);
+    trailLine.setLatLngs(trail);
+
+    if (firstFix) {
+      map.fitBounds([...routeLatLngs, latLng], { padding: [36, 36] });
+      firstFix = false;
+    } else {
+      map.panTo(latLng);
+    }
+
+    const knots = Number.isFinite(speed) && speed !== null ? ` | ${(speed * 1.94384).toFixed(1)} kt` : "";
+    const course = Number.isFinite(heading) && heading !== null ? ` | ${compass(heading)} ${Math.round(heading)}°` : "";
+    els.locationStatus.textContent =
+      `Live: ${latitude.toFixed(4)}, ${longitude.toFixed(4)} (±${Math.round(accuracy)} m)${knots}${course}`;
+    locationMarker.bindPopup(
+      `<strong>Ofishal Business</strong><br>${latitude.toFixed(4)}, ${longitude.toFixed(4)}<br>GPS accuracy: ~${Math.round(accuracy)} m`,
+    );
+  }
+
+  function onError(error) {
+    els.locationStatus.textContent =
+      error.code === error.PERMISSION_DENIED
+        ? "Location permission was blocked. Enable it in the browser to track."
+        : "Lost the GPS fix. Still trying…";
+  }
 
   els.locateButton.addEventListener("click", () => {
     if (!navigator.geolocation) {
@@ -285,49 +351,20 @@ function initLocationPin(map, routeLatLngs) {
       return;
     }
 
+    if (watchId !== null) {
+      stopTracking();
+      els.locationStatus.textContent = "Live tracking paused. Trail kept on the chart.";
+      return;
+    }
+
     els.locationStatus.textContent = "Waiting on GPS permission…";
-    els.locateButton.disabled = true;
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        const latLng = [latitude, longitude];
-
-        if (locationMarker) locationMarker.remove();
-        if (accuracyCircle) accuracyCircle.remove();
-
-        locationMarker = L.circleMarker(latLng, {
-          radius: 9,
-          color: "#04111d",
-          weight: 3,
-          fillColor: "#6df4d4",
-          fillOpacity: 1,
-        })
-          .addTo(map)
-          .bindPopup(`<strong>Your position</strong><br>GPS accuracy: ~${Math.round(accuracy)} m`)
-          .openPopup();
-
-        accuracyCircle = L.circle(latLng, {
-          radius: accuracy,
-          color: "#6df4d4",
-          weight: 1,
-          fillColor: "#6df4d4",
-          fillOpacity: 0.08,
-        }).addTo(map);
-
-        map.fitBounds([...routeLatLngs, latLng], { padding: [36, 36] });
-        els.locationStatus.textContent = `Pinned at ${latitude.toFixed(4)}, ${longitude.toFixed(4)}.`;
-        els.locateButton.disabled = false;
-      },
-      (error) => {
-        els.locationStatus.textContent =
-          error.code === error.PERMISSION_DENIED
-            ? "Location permission was blocked."
-            : "Could not get a GPS fix. Try again from the phone.";
-        els.locateButton.disabled = false;
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
-    );
+    els.locateButton.textContent = "Stop live location";
+    firstFix = true;
+    watchId = navigator.geolocation.watchPosition(onPosition, onError, {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 5000,
+    });
   });
 }
 

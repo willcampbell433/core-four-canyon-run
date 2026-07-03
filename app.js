@@ -6,7 +6,7 @@ const points = {
   brick: { lat: 40.0649, lon: -74.0881, label: "John's dock", note: "Departed 12:00 PM off the Metedeconk. Jordan Road bridge opened at 12:30 PM (opens on the half hour)." },
   inlet: { lat: 39.7614, lon: -74.1031, label: "Barnegat Inlet (Barnegat Light)", note: "Brielle Bridge closed for extreme heat, so we ran south down the bay. Cleared Barnegat Light ~2:00 PM, then pointed southeast." },
   shelf: { lat: 39.6, lon: -73.35, label: "Mid-run", note: "Water warms and deepens fast past the 30-fathom line." },
-  canyon: { lat: 39.117, lon: -72.7, label: "Toms Canyon", note: "Tuna water. ETA ~6:00 PM (just under 4 hrs from the inlet). Troll the edges, jig the marks." },
+  canyon: { lat: 38.9917, lon: -72.7, label: "South Toms Canyon", note: "First stop: South Toms 500-fathom tip. ETA ~6:00 PM. Troll the edge, watch the temp break, jig marks on the wall." },
 };
 
 const route = [points.brick, points.inlet, points.shelf, points.canyon];
@@ -26,6 +26,13 @@ const offshoreSpots = [
     label: "Hudson Canyon",
     type: "Canyon",
     note: "Major canyon north of Toms. Long run, serious structure.",
+  },
+  {
+    lat: 38.9,
+    lon: -72.5833,
+    label: "South Toms 1000 fm tip",
+    type: "Deep edge",
+    note: "Deeper South Toms reference point. Better low-light bigeye/swordfish neighborhood if life stacks deep.",
   },
   {
     lat: 39.7867,
@@ -251,7 +258,7 @@ function nmBetween(a, b) {
 function updateEta(remainingNm, speedMs) {
   if (!els.etaReadout) return;
   if (remainingNm < 1) {
-    els.etaReadout.textContent = "At Toms Canyon — lines in.";
+    els.etaReadout.textContent = "At South Toms Canyon - lines in.";
     return;
   }
   const kt = Number.isFinite(speedMs) && speedMs !== null ? speedMs * 1.94384 : null;
@@ -264,7 +271,7 @@ function updateEta(remainingNm, speedMs) {
     const clock = eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
     etaText = ` | ${h}h ${String(m).padStart(2, "0")}m out, ETA ${clock}`;
   }
-  els.etaReadout.textContent = `${remainingNm.toFixed(1)} nm to Toms Canyon${etaText}`;
+  els.etaReadout.textContent = `${remainingNm.toFixed(1)} nm to South Toms Canyon${etaText}`;
 }
 
 function initMap() {
@@ -301,12 +308,13 @@ function initMap() {
 
   const spotTooltip = {
     "Hudson Canyon": { direction: "right", offset: [10, 0] },
+    "South Toms 1000 fm tip": { direction: "right", offset: [10, 0] },
     "Chicken Canyon": { direction: "left", offset: [-10, 0] },
     "Triple Wrecks": { direction: "bottom", offset: [0, 10] },
     "Bacardi Wreck": { direction: "top", offset: [0, -10] },
   };
 
-  // Canyon halo, non-interactive so it never eats clicks meant for the Toms Canyon pin.
+  // Canyon halo, non-interactive so it never eats clicks meant for the South Toms pin.
   L.circle([points.canyon.lat, points.canyon.lon], {
     radius: 22000,
     color: "#ff8d4d",
@@ -343,7 +351,7 @@ function initMap() {
       .addTo(map)
       .bindPopup(`<strong>${p.label}</strong><br>${p.note}`);
     if (isCanyon) {
-      marker.bindTooltip("Toms Canyon", { permanent: true, direction: "right", offset: [12, 0] });
+      marker.bindTooltip("South Toms Canyon", { permanent: true, direction: "right", offset: [12, 0] });
     }
   });
 

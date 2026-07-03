@@ -647,8 +647,117 @@ small {
 }
 
 .species-section,
-.gallery-section {
+.gallery-section,
+.boat-section {
   padding: 58px 0 24px;
+}
+
+.boat-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) 330px;
+  gap: 18px;
+}
+
+.boat-photo {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #082033;
+  box-shadow: var(--shadow);
+}
+
+.boat-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.boat-facts {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.boat-facts div {
+  padding: 14px;
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent 66%),
+    rgba(255, 255, 255, 0.03);
+}
+
+.boat-facts strong {
+  display: block;
+  margin-top: 5px;
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-size: 1.45rem;
+  line-height: 1.08;
+}
+
+.boat-facts p {
+  margin: 10px 0 0;
+  color: #c2d3e0;
+  line-height: 1.55;
+}
+
+.species-art {
+  display: block;
+  width: calc(100% + 44px);
+  margin: -22px -22px 0;
+  aspect-ratio: 5 / 3;
+  object-fit: contain;
+  padding: 12px;
+  background: #eef4f8;
+  border-radius: var(--radius) var(--radius) 0 0;
+  box-sizing: border-box;
+}
+
+.boat-placeholder {
+  display: grid;
+  place-content: center;
+  gap: 16px;
+  min-height: 340px;
+  padding: 30px;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(108, 188, 255, 0.12), transparent 60%),
+    #082033;
+}
+
+.boat-placeholder svg {
+  width: 150px;
+  margin: 0 auto;
+  fill: rgba(109, 244, 212, 0.35);
+}
+
+.boat-placeholder svg .rigger {
+  fill: rgba(255, 141, 77, 0.5);
+}
+
+.boat-placeholder strong {
+  display: block;
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-size: 1.3rem;
+}
+
+.boat-placeholder span {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.species-card span {
+  display: block;
+  margin-top: 16px;
 }
 
 .species-grid {
@@ -899,6 +1008,7 @@ option {
 
   .hero,
   .map-layout,
+  .boat-layout,
   .tools-grid {
     grid-template-columns: 1fr;
   }

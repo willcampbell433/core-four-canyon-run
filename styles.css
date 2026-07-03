@@ -954,6 +954,50 @@ option {
   font-size: clamp(1.45rem, 3vw, 2.4rem);
 }
 
+.required-banner {
+  margin-top: 16px;
+  padding: 24px;
+  border: 1px solid rgba(255, 141, 77, 0.55);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, rgba(255, 141, 77, 0.16), transparent 60%),
+    var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.required-banner small {
+  color: var(--orange);
+}
+
+.required-banner strong {
+  display: block;
+  margin-top: 6px;
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-size: 1.7rem;
+  line-height: 1.05;
+}
+
+.required-banner p {
+  margin: 12px 0 0;
+  color: #c2d3e0;
+  line-height: 1.55;
+  max-width: 640px;
+}
+
+.required-banner a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 14px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 141, 77, 0.8);
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--orange), var(--orange-strong));
+  color: #1a0b03;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
 .checklist {
   margin-top: 16px;
   padding: 24px;

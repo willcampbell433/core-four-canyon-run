@@ -120,7 +120,8 @@ button {
 
 .primary-action,
 .secondary-action,
-.phase-buttons button {
+.phase-buttons button,
+.map-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -148,8 +149,20 @@ button {
 }
 
 .secondary-action:hover,
-.phase-buttons button:hover {
+.phase-buttons button:hover,
+.map-button:hover {
   border-color: rgba(109, 244, 212, 0.55);
+}
+
+.map-button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 0 14px;
+}
+
+.map-button:disabled {
+  cursor: wait;
+  opacity: 0.58;
 }
 
 .full {
@@ -249,6 +262,7 @@ h1 {
 .mission-panel,
 .map-panel,
 .map-notes,
+.seafloor-panel,
 .condition-card,
 .windy-panel,
 .tracker-card,
@@ -483,10 +497,96 @@ small {
 }
 
 .map-notes p,
-.condition-card p {
+.condition-card p,
+.seafloor-copy p,
+.chart-note {
   margin: 10px 0 0;
   color: #c2d3e0;
   line-height: 1.55;
+}
+
+.seafloor-panel {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  gap: 18px;
+  margin-top: 18px;
+  padding: 20px;
+}
+
+.seafloor-copy {
+  align-self: start;
+}
+
+.seafloor-copy a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  margin-top: 16px;
+  padding: 0 14px;
+  border: 1px solid rgba(109, 244, 212, 0.35);
+  border-radius: var(--radius);
+  color: var(--seafoam);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.seafloor-copy a:hover {
+  border-color: var(--seafoam);
+  background: rgba(109, 244, 212, 0.1);
+}
+
+.seafloor-map-wrap {
+  min-height: 390px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #082033;
+}
+
+#seafloorMap {
+  width: 100%;
+  min-height: 390px;
+}
+
+.spot-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.spot-grid article {
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, rgba(108, 188, 255, 0.1), transparent 58%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.spot-grid strong {
+  display: block;
+  margin-top: 5px;
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-size: 1.1rem;
+}
+
+.spot-grid span {
+  display: block;
+  margin-top: 8px;
+  color: #c2d3e0;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.chart-note {
+  grid-column: 1 / -1;
+  margin-top: 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--orange);
+  border-radius: var(--radius);
+  background: rgba(255, 141, 77, 0.08);
+  font-size: 0.9rem;
 }
 
 .live-grid {
@@ -1039,6 +1139,7 @@ option {
 
   .hero,
   .map-layout,
+  .seafloor-panel,
   .boat-layout,
   .tools-grid {
     grid-template-columns: 1fr;
@@ -1052,12 +1153,13 @@ option {
   .recap-grid,
   .live-grid,
   .species-grid,
-  .gallery-grid {
+  .gallery-grid,
+  .spot-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
   .map-notes {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -1088,6 +1190,7 @@ option {
 
   .mission-panel,
   .map-notes,
+  .seafloor-panel,
   .condition-card,
   .windy-panel,
   .tracker-card,
@@ -1101,19 +1204,30 @@ option {
 
   .timer-grid,
   .mission-stats,
+  .panel-topline,
   .phase-buttons,
   .crew-grid,
   .recap-grid,
   .live-grid,
   .species-grid,
+  .spot-grid,
   .log-metrics,
   .map-notes {
     grid-template-columns: 1fr;
   }
 
+  .panel-topline {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
   .map-panel,
-  #leafletMap {
+  #leafletMap,
+  .seafloor-map-wrap,
+  #seafloorMap {
     height: 390px;
+    min-height: 390px;
   }
 
   .windy-panel iframe {

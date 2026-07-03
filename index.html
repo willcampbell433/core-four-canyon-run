@@ -149,9 +149,9 @@
             <p>Steady hands, fish-box accountability, and morale when the run gets long.</p>
           </article>
           <article class="crew-card">
-            <span>Guest Deckhand</span>
+            <span>Guest Deckhand / Lookout</span>
             <h3>Will</h3>
-            <p>Guest roster spot. Young eyes on the horizon, photos, jokes, and not touching the wrong thing.</p>
+            <p>Official spotter. Scans the horizon for signs of life — diving seagulls, working birds, bait, weedlines — with binoculars or his young eyes, and calls out everything he sees. Also on photos, jokes, and not touching the wrong thing.</p>
           </article>
         </div>
       </section>
@@ -202,7 +202,7 @@
             <div>
               <small>Departure</small>
               <strong>John’s dock, Brick NJ</strong>
-              <p>Off the Metedeconk, out Manasquan Inlet, then point it southeast. Address in the group chat. Lines off at 12:00 PM.</p>
+              <p>Off the Metedeconk. Brielle Bridge was closed for extreme heat, so we ran south down Barnegat Bay and out Barnegat Inlet by the light instead of Manasquan. Lines off at 12:00 PM.</p>
             </div>
             <div>
               <small>Run distance</small>
@@ -214,7 +214,59 @@
               <strong>Toms Canyon</strong>
               <p>Warm blue water at the shelf edge. Troll the edges, jig the marks, watch for birds and mahi under anything floating.</p>
             </div>
+            <div>
+              <small>Boat pin</small>
+              <strong>Your location</strong>
+              <p id="locationStatus">Use phone GPS to drop your current position on the chart.</p>
+              <button class="map-button" id="locateButton" type="button">Show my location</button>
+            </div>
           </aside>
+        </div>
+
+        <div class="seafloor-panel" aria-label="Seafloor reference map">
+          <div class="seafloor-copy">
+            <div class="section-heading">
+              <span>Seafloor Reference</span>
+              <h2>Canyons and wrecks</h2>
+            </div>
+            <p>
+              Wider shelf-edge view with Hudson Canyon, Chicken Canyon, Triple Wrecks, and the
+              Bacardi Wreck added as reference marks. The 2014 On The Water report called out
+              the Toms-to-Hudson run and Chicken Canyon as offshore targets.
+            </p>
+            <a href="https://onthewater.com/fishing-reports/2014/07/offshore-fishing-report-7-17-14" target="_blank" rel="noreferrer">
+              Open the On The Water reference
+            </a>
+          </div>
+          <div class="seafloor-map-wrap">
+            <div id="seafloorMap" aria-label="Bathymetry map of nearby offshore canyons and wrecks"></div>
+          </div>
+          <div class="spot-grid" aria-label="Notable offshore locations">
+            <article>
+              <small>Canyon</small>
+              <strong>Hudson Canyon</strong>
+              <span>North of Toms, major shelf-edge structure.</span>
+            </article>
+            <article>
+              <small>Canyon</small>
+              <strong>Chicken Canyon</strong>
+              <span>Midshore bluefin and yellowfin neighborhood.</span>
+            </article>
+            <article>
+              <small>Wreck area</small>
+              <strong>Triple Wrecks</strong>
+              <span>Known tuna stop east of Barnegat.</span>
+            </article>
+            <article>
+              <small>Wreck</small>
+              <strong>Bacardi Wreck</strong>
+              <span>Durley Chine, near Texas Tower water.</span>
+            </article>
+          </div>
+          <p class="chart-note">
+            Coordinates are approximate public fishing references. Confirm final numbers on the
+            boat’s chartplotter before running or setting up.
+          </p>
         </div>
       </section>
 

@@ -5,10 +5,43 @@ const phaseKey = "core-four-canyon-run-phase";
 
 const points = {
   brick: { lat: 40.0649, lon: -74.0881, label: "John's dock", note: "Departure: Jul 3, 12:00 PM off the Metedeconk." },
-  inlet: { lat: 40.1019, lon: -74.0336, label: "Manasquan Inlet", note: "Out the inlet, then southeast to blue water." },
+  inlet: { lat: 39.7614, lon: -74.1031, label: "Barnegat Inlet (Barnegat Light)", note: "Brielle Bridge was closed for extreme heat, so we ran south down the bay and out Barnegat Inlet by the light." },
   shelf: { lat: 39.6, lon: -73.35, label: "Mid-run", note: "Water warms and deepens fast past the 30-fathom line." },
   canyon: { lat: 39.117, lon: -72.7, label: "Toms Canyon", note: "Tuna water. Troll the edges, jig the marks." },
 };
+
+const route = [points.brick, points.inlet, points.shelf, points.canyon];
+
+const offshoreSpots = [
+  {
+    lat: 39.6826,
+    lon: -72.4811,
+    label: "Hudson Canyon",
+    type: "Canyon",
+    note: "Major canyon north of Toms. Long run, serious structure.",
+  },
+  {
+    lat: 39.7867,
+    lon: -72.985,
+    label: "Chicken Canyon",
+    type: "Canyon",
+    note: "Midshore canyon water called out for North Jersey bluefin.",
+  },
+  {
+    lat: 39.6411,
+    lon: -73.0525,
+    label: "Triple Wrecks",
+    type: "Wreck area",
+    note: "Known tuna neighborhood east of Barnegat.",
+  },
+  {
+    lat: 39.8821,
+    lon: -72.6457,
+    label: "Bacardi Wreck",
+    type: "Wreck",
+    note: "Durley Chine wreck, roughly 65 nm east of Manasquan.",
+  },
+];
 
 const seedEntries = [
   {
@@ -16,6 +49,12 @@ const seedEntries = [
     type: "Dockside",
     method: "Running",
     moment: "Push off from Brick. Crew loaded, coolers heavy. Guest deckhand clock starts.",
+  },
+  {
+    time: "Jul 3, midday",
+    type: "Weather",
+    method: "Running",
+    moment: "Brielle Bridge closed for extreme heat. Rerouted south down the bay, out Barnegat Inlet by the light.",
   },
   {
     time: "Jul 3, afternoon",
@@ -55,6 +94,8 @@ const els = {
   replacementGrade: document.querySelector("#replacementGrade"),
   tideList: document.querySelector("#tideList"),
   runDistance: document.querySelector("#runDistance"),
+  locateButton: document.querySelector("#locateButton"),
+  locationStatus: document.querySelector("#locationStatus"),
   day1Head: document.querySelector("#day1Head"),
   day1Metrics: document.querySelector("#day1Metrics"),
   day2Head: document.querySelector("#day2Head"),
@@ -157,7 +198,6 @@ function nmBetween(a, b) {
 
 function initMap() {
   const map = L.map("leafletMap", { scrollWheelZoom: false });
-  const route = [points.brick, points.inlet, points.shelf, points.canyon];
 
   const oceanLayer = L.tileLayer(
     "https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",
@@ -180,6 +220,7 @@ function initMap() {
   });
 
   const latLngs = route.map((p) => [p.lat, p.lon]);
+  const allLatLngs = [...latLngs, ...offshoreSpots.map((p) => [p.lat, p.lon])];
   L.polyline(latLngs, {
     color: "#ff8d4d",
     weight: 4,
@@ -200,6 +241,19 @@ function initMap() {
       .bindPopup(`<strong>${p.label}</strong><br>${p.note}`);
   });
 
+  offshoreSpots.forEach((spot) => {
+    L.circleMarker([spot.lat, spot.lon], {
+      radius: spot.type === "Canyon" ? 8 : 7,
+      color: "#f6fbff",
+      weight: 2,
+      fillColor: spot.type === "Canyon" ? "#6cbcff" : "#f2c94c",
+      fillOpacity: 0.92,
+    })
+      .addTo(map)
+      .bindTooltip(spot.label, { direction: "top", offset: [0, -8] })
+      .bindPopup(`<strong>${spot.label}</strong><br><small>${spot.type}</small><br>${spot.note}`);
+  });
+
   L.circle([points.canyon.lat, points.canyon.lon], {
     radius: 22000,
     color: "#ff8d4d",
@@ -208,11 +262,126 @@ function initMap() {
     fillOpacity: 0.12,
   }).addTo(map);
 
-  map.fitBounds(latLngs, { padding: [36, 36] });
+  map.fitBounds(allLatLngs, { padding: [36, 36] });
+  if (map.getSize().x < 520) map.setZoom(map.getZoom() - 2);
 
   let total = 0;
   for (let i = 1; i < route.length; i += 1) total += nmBetween(route[i - 1], route[i]);
   els.runDistance.textContent = `~${Math.round(total)} nm`;
+
+  initLocationPin(map, allLatLngs);
+  initSeafloorMap();
+}
+
+function initLocationPin(map, routeLatLngs) {
+  if (!els.locateButton || !els.locationStatus) return;
+
+  let locationMarker;
+  let accuracyCircle;
+
+  els.locateButton.addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      els.locationStatus.textContent = "GPS is not available in this browser.";
+      return;
+    }
+
+    els.locationStatus.textContent = "Waiting on GPS permission…";
+    els.locateButton.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        const latLng = [latitude, longitude];
+
+        if (locationMarker) locationMarker.remove();
+        if (accuracyCircle) accuracyCircle.remove();
+
+        locationMarker = L.circleMarker(latLng, {
+          radius: 9,
+          color: "#04111d",
+          weight: 3,
+          fillColor: "#6df4d4",
+          fillOpacity: 1,
+        })
+          .addTo(map)
+          .bindPopup(`<strong>Your position</strong><br>GPS accuracy: ~${Math.round(accuracy)} m`)
+          .openPopup();
+
+        accuracyCircle = L.circle(latLng, {
+          radius: accuracy,
+          color: "#6df4d4",
+          weight: 1,
+          fillColor: "#6df4d4",
+          fillOpacity: 0.08,
+        }).addTo(map);
+
+        map.fitBounds([...routeLatLngs, latLng], { padding: [36, 36] });
+        els.locationStatus.textContent = `Pinned at ${latitude.toFixed(4)}, ${longitude.toFixed(4)}.`;
+        els.locateButton.disabled = false;
+      },
+      (error) => {
+        els.locationStatus.textContent =
+          error.code === error.PERMISSION_DENIED
+            ? "Location permission was blocked."
+            : "Could not get a GPS fix. Try again from the phone.";
+        els.locateButton.disabled = false;
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
+    );
+  });
+}
+
+function initSeafloorMap() {
+  const el = document.querySelector("#seafloorMap");
+  if (!el) return;
+
+  const map = L.map(el, {
+    scrollWheelZoom: false,
+    dragging: true,
+    zoomControl: true,
+  });
+
+  L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}", {
+    attribution: "Esri Ocean Basemap — GEBCO, NOAA, Garmin",
+    maxZoom: 10,
+  }).addTo(map);
+
+  const bounds = [...offshoreSpots, points.canyon].map((p) => [p.lat, p.lon]);
+
+  const tooltipPlacement = {
+    "Hudson Canyon": { direction: "right", offset: [10, 0] },
+    "Chicken Canyon": { direction: "left", offset: [-10, 0] },
+    "Triple Wrecks": { direction: "bottom", offset: [0, 10] },
+    "Bacardi Wreck": { direction: "top", offset: [0, -10] },
+  };
+
+  offshoreSpots.forEach((spot) => {
+    const tooltip = tooltipPlacement[spot.label] || { direction: "right", offset: [10, 0] };
+    L.circleMarker([spot.lat, spot.lon], {
+      radius: 9,
+      color: "#04111d",
+      weight: 3,
+      fillColor: spot.type === "Canyon" ? "#6cbcff" : "#f2c94c",
+      fillOpacity: 1,
+    })
+      .addTo(map)
+      .bindTooltip(spot.label, { permanent: true, ...tooltip })
+      .bindPopup(`<strong>${spot.label}</strong><br><small>${spot.type}</small><br>${spot.note}`);
+  });
+
+  L.circleMarker([points.canyon.lat, points.canyon.lon], {
+    radius: 9,
+    color: "#04111d",
+    weight: 3,
+    fillColor: "#ff8d4d",
+    fillOpacity: 1,
+  })
+    .addTo(map)
+    .bindTooltip("Toms Canyon", { permanent: true, direction: "right", offset: [10, 0] })
+    .bindPopup(`<strong>${points.canyon.label}</strong><br>${points.canyon.note}`);
+
+  map.fitBounds(bounds, { padding: [48, 48] });
+  if (map.getSize().x < 520) map.setZoom(map.getZoom() - 2);
 }
 
 /* ---------- Live weather (Open-Meteo) ---------- */

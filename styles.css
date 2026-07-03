@@ -347,6 +347,18 @@ small {
   font-size: 1rem;
 }
 
+.official-log-note {
+  margin: 16px 0 0;
+  padding: 14px;
+  border: 1px solid rgba(109, 244, 212, 0.18);
+  border-radius: var(--radius);
+  background: rgba(109, 244, 212, 0.08);
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
 .boat-strip {
   margin-top: 18px;
   padding: 14px;

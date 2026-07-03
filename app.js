@@ -69,6 +69,12 @@ const seedEntries = [
     method: "Running",
     moment: "Starlink dropped past 15 nm out — 'unsupported location.' Roam unlimited stops at 15 nm; enabled Ocean Mode ($2/GB) in the app and were back online in 10. John FaceTimed Heidi. Off to the races.",
   },
+  {
+    time: "Jul 3, pre-bite",
+    type: "Boat life",
+    method: "Other",
+    moment: "Official catches go on John's Waterpoof app first so the fish are publicly logged. This board is for fun, and Waterpoof activity can help steer moves if nearby boats light up.",
+  },
 ];
 
 const removedSeedMoments = new Set([
@@ -152,7 +158,12 @@ function readEntries() {
   try {
     const parsed = JSON.parse(localStorage.getItem(storageKey));
     if (!Array.isArray(parsed)) return seedEntries;
-    const cleaned = parsed.filter((entry) => !removedSeedMoments.has(entry.moment));
+    let cleaned = parsed.filter((entry) => !removedSeedMoments.has(entry.moment));
+    seedEntries.forEach((seed) => {
+      if (!cleaned.some((entry) => entry.moment === seed.moment)) {
+        cleaned = [...cleaned, seed];
+      }
+    });
     if (cleaned.length !== parsed.length) writeEntries(cleaned);
     return cleaned;
   } catch {

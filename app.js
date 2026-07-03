@@ -236,20 +236,25 @@ function initMap() {
     lineCap: "round",
   }).addTo(map);
 
-  route.forEach((p, i) => {
-    const isEnd = i === 0 || i === route.length - 1;
-    L.circleMarker([p.lat, p.lon], {
-      radius: isEnd ? 10 : 7,
-      color: "#04111d",
-      weight: 3,
-      fillColor: i === route.length - 1 ? "#ff8d4d" : i === 0 ? "#6cbcff" : "#6df4d4",
-      fillOpacity: 1,
-    })
-      .addTo(map)
-      .bindPopup(`<strong>${p.label}</strong><br>${p.note}`);
-  });
+  const spotTooltip = {
+    "Hudson Canyon": { direction: "right", offset: [10, 0] },
+    "Chicken Canyon": { direction: "left", offset: [-10, 0] },
+    "Triple Wrecks": { direction: "bottom", offset: [0, 10] },
+    "Bacardi Wreck": { direction: "top", offset: [0, -10] },
+  };
+
+  // Canyon halo, non-interactive so it never eats clicks meant for the Toms Canyon pin.
+  L.circle([points.canyon.lat, points.canyon.lon], {
+    radius: 22000,
+    color: "#ff8d4d",
+    weight: 1.5,
+    fillColor: "#ff8d4d",
+    fillOpacity: 0.12,
+    interactive: false,
+  }).addTo(map);
 
   offshoreSpots.forEach((spot) => {
+    const tip = spotTooltip[spot.label] || { direction: "right", offset: [10, 0] };
     L.circleMarker([spot.lat, spot.lon], {
       radius: spot.type === "Canyon" ? 8 : 7,
       color: "#f6fbff",
@@ -258,17 +263,26 @@ function initMap() {
       fillOpacity: 0.92,
     })
       .addTo(map)
-      .bindTooltip(spot.label, { direction: "top", offset: [0, -8] })
+      .bindTooltip(spot.label, { permanent: true, ...tip })
       .bindPopup(`<strong>${spot.label}</strong><br><small>${spot.type}</small><br>${spot.note}`);
   });
 
-  L.circle([points.canyon.lat, points.canyon.lon], {
-    radius: 22000,
-    color: "#ff8d4d",
-    weight: 1.5,
-    fillColor: "#ff8d4d",
-    fillOpacity: 0.12,
-  }).addTo(map);
+  route.forEach((p, i) => {
+    const isEnd = i === 0 || i === route.length - 1;
+    const isCanyon = i === route.length - 1;
+    const marker = L.circleMarker([p.lat, p.lon], {
+      radius: isEnd ? 10 : 7,
+      color: "#04111d",
+      weight: 3,
+      fillColor: isCanyon ? "#ff8d4d" : i === 0 ? "#6cbcff" : "#6df4d4",
+      fillOpacity: 1,
+    })
+      .addTo(map)
+      .bindPopup(`<strong>${p.label}</strong><br>${p.note}`);
+    if (isCanyon) {
+      marker.bindTooltip("Toms Canyon", { permanent: true, direction: "right", offset: [12, 0] });
+    }
+  });
 
   map.fitBounds(allLatLngs, { padding: [36, 36] });
   if (map.getSize().x < 520) map.setZoom(map.getZoom() - 2);
@@ -278,7 +292,6 @@ function initMap() {
   els.runDistance.textContent = `~${Math.round(total)} nm`;
 
   initLocationPin(map, allLatLngs);
-  initSeafloorMap();
 }
 
 function initLocationPin(map, routeLatLngs) {
@@ -374,59 +387,6 @@ function initLocationPin(map, routeLatLngs) {
       maximumAge: 5000,
     });
   });
-}
-
-function initSeafloorMap() {
-  const el = document.querySelector("#seafloorMap");
-  if (!el) return;
-
-  const map = L.map(el, {
-    scrollWheelZoom: false,
-    dragging: true,
-    zoomControl: true,
-  });
-
-  L.tileLayer("https://services.arcgisonline.com/arcgis/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}", {
-    attribution: "Esri Ocean Basemap — GEBCO, NOAA, Garmin",
-    maxZoom: 10,
-  }).addTo(map);
-
-  const bounds = [...offshoreSpots, points.canyon].map((p) => [p.lat, p.lon]);
-
-  const tooltipPlacement = {
-    "Hudson Canyon": { direction: "right", offset: [10, 0] },
-    "Chicken Canyon": { direction: "left", offset: [-10, 0] },
-    "Triple Wrecks": { direction: "bottom", offset: [0, 10] },
-    "Bacardi Wreck": { direction: "top", offset: [0, -10] },
-  };
-
-  offshoreSpots.forEach((spot) => {
-    const tooltip = tooltipPlacement[spot.label] || { direction: "right", offset: [10, 0] };
-    L.circleMarker([spot.lat, spot.lon], {
-      radius: 9,
-      color: "#04111d",
-      weight: 3,
-      fillColor: spot.type === "Canyon" ? "#6cbcff" : "#f2c94c",
-      fillOpacity: 1,
-    })
-      .addTo(map)
-      .bindTooltip(spot.label, { permanent: true, ...tooltip })
-      .bindPopup(`<strong>${spot.label}</strong><br><small>${spot.type}</small><br>${spot.note}`);
-  });
-
-  L.circleMarker([points.canyon.lat, points.canyon.lon], {
-    radius: 9,
-    color: "#04111d",
-    weight: 3,
-    fillColor: "#ff8d4d",
-    fillOpacity: 1,
-  })
-    .addTo(map)
-    .bindTooltip("Toms Canyon", { permanent: true, direction: "right", offset: [10, 0] })
-    .bindPopup(`<strong>${points.canyon.label}</strong><br>${points.canyon.note}`);
-
-  map.fitBounds(bounds, { padding: [48, 48] });
-  if (map.getSize().x < 520) map.setZoom(map.getZoom() - 2);
 }
 
 /* ---------- Live weather (Open-Meteo) ---------- */

@@ -507,7 +507,7 @@ small {
 
 .seafloor-panel {
   display: grid;
-  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  grid-template-columns: 1fr;
   gap: 18px;
   margin-top: 18px;
   padding: 20px;
@@ -533,19 +533,6 @@ small {
 .seafloor-copy a:hover {
   border-color: var(--seafoam);
   background: rgba(109, 244, 212, 0.1);
-}
-
-.seafloor-map-wrap {
-  min-height: 390px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: #082033;
-}
-
-#seafloorMap {
-  width: 100%;
-  min-height: 390px;
 }
 
 .spot-grid {
@@ -1223,9 +1210,7 @@ option {
   }
 
   .map-panel,
-  #leafletMap,
-  .seafloor-map-wrap,
-  #seafloorMap {
+  #leafletMap {
     height: 390px;
     min-height: 390px;
   }

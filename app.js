@@ -155,7 +155,6 @@ const els = {
   day2Head: document.querySelector("#day2Head"),
   day2Metrics: document.querySelector("#day2Metrics"),
   sunMoonList: document.querySelector("#sunMoonList"),
-  photoInput: document.querySelector("#photoInput"),
   galleryGrid: document.querySelector("#galleryGrid"),
 };
 
@@ -751,24 +750,6 @@ async function refreshTides() {
   }
 }
 
-/* ---------- Photo gallery ---------- */
-
-function initGallery() {
-  if (!els.photoInput || !els.galleryGrid) return;
-  els.photoInput.addEventListener("change", () => {
-    [...els.photoInput.files].forEach((file) => {
-      const figure = document.createElement("figure");
-      figure.className = "gallery-photo";
-      const img = document.createElement("img");
-      img.src = URL.createObjectURL(file);
-      img.alt = file.name;
-      figure.appendChild(img);
-      els.galleryGrid.prepend(figure);
-    });
-    els.photoInput.value = "";
-  });
-}
-
 /* ---------- Wire up ---------- */
 
 els.form.addEventListener("submit", (event) => {
@@ -810,5 +791,4 @@ runStartupTask("weather", refreshWeather);
 runStartupTask("buoy", refreshBuoy);
 runStartupTask("tides", refreshTides);
 runStartupTask("map", initMap);
-runStartupTask("gallery", initGallery);
 setInterval(renderTimer, 30000);

@@ -140,6 +140,26 @@ const seedEntries = [
     method: "Other",
     moment: "Will called Conor, who reported 30 mph winds back in Point Pleasant with trees blowing around. Good news: the storm looks like it will pass west of the boat. The crew is about as far south as Avalon and roughly 100 miles offshore, settling in for the night shift.",
   },
+  {
+    time: "Jul 4, 6:28 AM",
+    type: "Tuna",
+    method: "Trolling",
+    angler: "Will",
+    moment: "Up at 4:45 AM with eight lines in the water. Sunrise at 5:20 AM and Will climbs the tower to look for signs of life. John radios his buddy Mark DiBlasio, trolling nearby. About 15 minutes later a rod hits and Will reels in a yellowfin. Fish on board at 6:28 AM. Four tuna in the box.",
+  },
+  {
+    time: "Jul 4, 7:38 AM",
+    type: "Tuna",
+    method: "Trolling",
+    angler: "John",
+    moment: "All eight lines back down at 7:00 AM and two rods hit immediately. John and Will strap into the fighting harnesses and pull the fish toward the boat. Bill goes to gaff Will's fish, slips, and loses the gaff and the fish in the water. No fish for Will. Will grabs a new gaff and lands John's fish at 7:38 AM, his first career gaffed fish. Another tuna for John, and it's a fatty. Five tuna in the box.",
+  },
+  {
+    time: "Jul 4, 8:15 AM",
+    type: "Boat life",
+    method: "Running",
+    moment: "By 8:15 AM the crew calls it. Enough fish, worn out from fighting them, and turning around for the roughly five-hour run back home.",
+  },
 ];
 
 const removedSeedMoments = new Set([

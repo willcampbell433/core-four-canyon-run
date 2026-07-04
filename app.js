@@ -1,6 +1,6 @@
 const departure = new Date("2026-07-03T12:00:00-04:00");
 const roughReturn = new Date("2026-07-04T16:00:00-04:00");
-const storageKey = "core-four-canyon-run-log";
+const storageKey = "core-four-canyon-run-log-v2";
 
 const points = {
   brick: { lat: 40.0649, lon: -74.0881, label: "John's dock", note: "Departed 12:00 PM off the Metedeconk. Jordan Road bridge opened at 12:30 PM (opens on the half hour)." },

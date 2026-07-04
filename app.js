@@ -113,11 +113,35 @@ const seedEntries = [
     method: "Other",
     moment: "John's SIMRAD showed 76.9°F ocean water. That onboard reading is better than the modeled SST; NDBC 44066's current feed was unreachable.",
   },
+  {
+    time: "Jul 3, 6:46 PM",
+    type: "Tuna",
+    method: "Trolling",
+    angler: "John",
+    moment: "First line in at 5:46 PM. Two hits right away: John reels in a 60 lb yellowfin while Will works a bigger fish that gets close to the boat before snapping the line. Big yellowfin to kick off the canyon bite.",
+  },
+  {
+    time: "Jul 3, 8:00 PM",
+    type: "Tuna",
+    method: "Trolling",
+    angler: "John",
+    moment: "Eight rods went back in, then the cabin break lasted about five minutes before two rods hit. John reeled in a fat 60 lb yellowfin from the stern rod holder. Another yellowfin in the boat.",
+  },
+  {
+    time: "Jul 3, 8:01 PM",
+    type: "Tuna",
+    method: "Trolling",
+    angler: "Will",
+    moment: "At the same time, Will had a yellowfin on and waited for John and Bill to gaff the first fish. Then John gaffed Will's fish for the third yellowfin in the boat. Three fish in about 90 minutes, icebox filled by 7:30.",
+  },
 ];
 
 const removedSeedMoments = new Set([
   "Check Windy and NOAA before the long part of the run.",
   "Spread out, eyes up, wait for the chaos.",
+  "First line in the water at 5:46 p.m. Immediately get two hits. Jon reels in a 60 lb yellowfin tuna while Will starts reeling in a big fish. We get it close to the boat. He snaps the line. It pulled out all the line. We eventually lost it but a big yellowfin tuna to kick off the day.",
+  "We put eight rods back in the water then went in the cabin to relax for a few minutes.About five minutes later two rods hit. John reeled in a fat 60 lb yellowfin from the stern rod holder. Another yellowfin in the boat ",
+  "At the same time Will had a yellowfin on and reeled it in but waited for John and Bill to gaff the first fish. After that was done John gaffed the yellowfin for the third yellowfin in the boat. That's three fish in just one hour and thirty minutes on the water. By 7:30 we filled the icebox with three yellowfins ",
 ]);
 
 const tideFallback = [

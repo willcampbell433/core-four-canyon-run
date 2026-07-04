@@ -134,6 +134,12 @@ const seedEntries = [
     angler: "Will",
     moment: "At the same time, Will had a yellowfin on and waited for John and Bill to gaff the first fish. Then John gaffed Will's fish for the third yellowfin in the boat. Three fish in about 90 minutes, icebox filled by 7:30.",
   },
+  {
+    time: "Jul 3, 9:00 PM",
+    type: "Weather",
+    method: "Other",
+    moment: "Will called Connor, who reported 30 mph winds back in Point Pleasant with trees blowing around. Good news: the storm looks like it will pass west of the boat. The crew is about as far south as Avalon and roughly 100 miles offshore, settling in for the night shift.",
+  },
 ];
 
 const removedSeedMoments = new Set([

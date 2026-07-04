@@ -138,7 +138,7 @@ const seedEntries = [
     time: "Jul 3, 9:00 PM",
     type: "Weather",
     method: "Other",
-    moment: "Will called Connor, who reported 30 mph winds back in Point Pleasant with trees blowing around. Good news: the storm looks like it will pass west of the boat. The crew is about as far south as Avalon and roughly 100 miles offshore, settling in for the night shift.",
+    moment: "Will called Conor, who reported 30 mph winds back in Point Pleasant with trees blowing around. Good news: the storm looks like it will pass west of the boat. The crew is about as far south as Avalon and roughly 100 miles offshore, settling in for the night shift.",
   },
 ];
 

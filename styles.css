@@ -170,6 +170,10 @@ button {
   width: 100%;
 }
 
+.log-form + .secondary-action.full {
+  margin-top: 12px;
+}
+
 .hero {
   position: relative;
   min-height: calc(100vh - 74px);

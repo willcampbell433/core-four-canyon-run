@@ -140,6 +140,7 @@ const els = {
   catchCount: document.querySelector("#catchCount"),
   timeline: document.querySelector("#timelineList"),
   form: document.querySelector("#logForm"),
+  copyLogButton: document.querySelector("#copyLogButton"),
   replacementGrade: document.querySelector("#replacementGrade"),
   tideList: document.querySelector("#tideList"),
   runDistance: document.querySelector("#runDistance"),
@@ -210,6 +211,38 @@ function readEntries() {
 
 function writeEntries(entries) {
   localStorage.setItem(storageKey, JSON.stringify(entries));
+}
+
+function formatBoardLogExport(entries) {
+  const lines = entries.map((entry) => {
+    const angler = entry.angler ? ` / ${entry.angler}` : "";
+    return `- ${entry.time}: ${entry.moment} (${entry.type} / ${entry.method}${angler})`;
+  });
+  return `Core Four Canyon Run board log\n\n${lines.join("\n")}\n\nRaw JSON:\n${JSON.stringify(entries, null, 2)}`;
+}
+
+async function copyBoardLog() {
+  if (!els.copyLogButton) return;
+  const entries = readEntries();
+  const text = formatBoardLogExport(entries);
+  try {
+    await navigator.clipboard.writeText(text);
+    els.copyLogButton.textContent = "Board log copied";
+  } catch {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.top = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    textarea.remove();
+    els.copyLogButton.textContent = "Board log copied";
+  }
+  setTimeout(() => {
+    els.copyLogButton.textContent = "Copy board log";
+  }, 2500);
 }
 
 function touchLastUpdate() {
@@ -773,6 +806,10 @@ els.form.addEventListener("submit", (event) => {
   touchLastUpdate();
   renderTimeline();
 });
+
+if (els.copyLogButton) {
+  els.copyLogButton.addEventListener("click", copyBoardLog);
+}
 
 function runStartupTask(name, task) {
   try {

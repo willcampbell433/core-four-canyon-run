@@ -163,17 +163,16 @@ test("trip gallery exposes one accessible shared photo upload pathway", async ()
   assert.doesNotMatch(archiveHtml, /photoPicker|photoUploadPanel|sharedPhotoList/);
 });
 
-test("shared photo flow uses Supabase Storage, realtime metadata, and confirmed delete", async () => {
+test("shared photo flow uses append-only Supabase Storage and realtime metadata", async () => {
   const app = await read("app.js");
 
   assert.match(app, /import\("\.\/photo-utils\.js"\)/);
   assert.match(app, /storage\.from\("trip-photos"\)\.upload/);
   assert.match(app, /from\("trip_photos"\)\.insert/);
-  assert.match(app, /from\("trip_photos"\)\.delete/);
-  assert.match(app, /storage\.from\("trip-photos"\)\.remove/);
   assert.match(app, /table: "trip_photos"/);
-  assert.match(app, /confirm\("Delete this shared trip photo\?"\)/);
   assert.match(app, /navigator\.onLine/);
+  assert.doesNotMatch(app, /deletePhoto|data-photo-delete|photoDelete|removeUploadedObject/);
+  assert.doesNotMatch(app, /from\("trip_photos"\)\.delete|storage\.from\("trip-photos"\)\.remove/);
   assert.doesNotMatch(app, /localStorage[^\n]+photo|photo[^\n]+localStorage/i);
 });
 
@@ -184,8 +183,8 @@ test("shared photo captions render through textContent and uploads report partia
   assert.doesNotMatch(app, /innerHTML[^\n]+caption|caption[^\n]+innerHTML/);
   assert.match(app, /uploadedCount/);
   assert.match(app, /failedMessages/);
-  assert.match(app, /removeUploadedObject/);
   assert.match(app, /window\.addEventListener\("online"[\s\S]{0,220}photoUploadStatus\.textContent = ""/);
   assert.match(styles, /\.gallery-photo > a \{[\s\S]*aspect-ratio: 4 \/ 3/);
   assert.match(styles, /\.gallery-photo > a img \{[\s\S]*height: 100%/);
+  assert.doesNotMatch(styles, /delete-photo-button/);
 });

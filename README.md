@@ -14,11 +14,11 @@ Canonical production URL: [`https://ofishal-business.vercel.app`](https://ofisha
 - Sunrise, sunset, and moon phase bite windows
 - Crew cards, species guide, trip log, shared photo gallery, prep checklist
 - Shared Supabase-backed trip status, destination, note, and realtime trip log
-- Shared photo files in Supabase Storage with realtime metadata and public add/delete
+- Shared photo files in Supabase Storage with realtime metadata and append-only public uploads
 - Durable offline write queue with visible synced, pending, and offline states
 - Live bluefin status, permit, reporting, and safety links
 
-The active Vercel board is intentionally public: anyone with the link can add, edit, or delete active-trip entries and add or delete trip photos without signing in. GPS remains local to each device and is not stored in Supabase.
+The active Vercel board is intentionally public: anyone with the link can add, edit, or delete active-trip entries and add trip photos without signing in. Trip photos are append-only for public visitors. GPS remains local to each device and is not stored in Supabase.
 
 Trip photo uploads are online-only. The browser validates and compresses images before sending them to Supabase Storage; image bytes are never placed in the trip log's local offline queue.
 

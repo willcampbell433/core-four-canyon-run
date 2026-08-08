@@ -157,3 +157,27 @@ test("trip gallery exposes one accessible shared photo upload pathway", async ()
   assert.match(html, /data-static-photo/);
   assert.doesNotMatch(archiveHtml, /photoPicker|photoUploadPanel|sharedPhotoList/);
 });
+
+test("shared photo flow uses Supabase Storage, realtime metadata, and confirmed delete", async () => {
+  const app = await read("app.js");
+
+  assert.match(app, /import\("\.\/photo-utils\.js"\)/);
+  assert.match(app, /storage\.from\("trip-photos"\)\.upload/);
+  assert.match(app, /from\("trip_photos"\)\.insert/);
+  assert.match(app, /from\("trip_photos"\)\.delete/);
+  assert.match(app, /storage\.from\("trip-photos"\)\.remove/);
+  assert.match(app, /table: "trip_photos"/);
+  assert.match(app, /confirm\("Delete this shared trip photo\?"\)/);
+  assert.match(app, /navigator\.onLine/);
+  assert.doesNotMatch(app, /localStorage[^\n]+photo|photo[^\n]+localStorage/i);
+});
+
+test("shared photo captions render through textContent and uploads report partial failure", async () => {
+  const app = await read("app.js");
+
+  assert.match(app, /caption[^\n]+textContent/);
+  assert.doesNotMatch(app, /innerHTML[^\n]+caption|caption[^\n]+innerHTML/);
+  assert.match(app, /uploadedCount/);
+  assert.match(app, /failedMessages/);
+  assert.match(app, /removeUploadedObject/);
+});

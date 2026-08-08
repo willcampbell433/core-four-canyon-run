@@ -263,6 +263,17 @@ test("required DOM IDs are unique", async () => {
   assert.equal(new Set(ids).size, ids.length);
 });
 
+test("photo upload module is shipped by the static build", async () => {
+  const [generator, app] = await Promise.all([
+    read("scripts/generate-shared-config.mjs"),
+    read("app.js"),
+  ]);
+
+  assert.match(generator, /"photo-utils\.js"/);
+  assert.match(app, /setupSharedPhotos/);
+  assert.match(app, /runStartupTask\("shared board", setupSharedBoard\)/);
+});
+
 test("live GPS has a dedicated section below the route map", async () => {
   const [html, styles] = await Promise.all([read("index.html"), read("styles.css")]);
   const mapStart = html.indexOf('<section class="map-section section-shell" id="map">');

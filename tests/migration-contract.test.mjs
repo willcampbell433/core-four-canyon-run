@@ -14,6 +14,10 @@ const photoAppendOnlyMigrationUrl = new URL(
   "../supabase/migrations/20260808185000_photo_gallery_append_only.sql",
   import.meta.url,
 );
+const destinationMigrationUrl = new URL(
+  "../supabase/migrations/20260808195800_tracker_destinations.sql",
+  import.meta.url,
+);
 
 test("migration enforces public CRUD and realtime contracts", async () => {
   const sql = await readFile(migrationUrl, "utf8");
@@ -67,4 +71,20 @@ test("photo gallery is append-only for anonymous visitors", async () => {
   assert.match(sql, /drop policy if exists "Public trip photos are deletable" on public\.trip_photos/i);
   assert.match(sql, /drop policy if exists "Public active trip photos are deletable" on storage\.objects/i);
   assert.doesNotMatch(sql, /create policy[^;]+for delete/is);
+});
+
+test("tracker destination migration allows every selectable waypoint", async () => {
+  const sql = await readFile(destinationMigrationUrl, "utf8");
+
+  assert.match(sql, /drop constraint if exists trip_state_active_destination_check/i);
+  for (const destination of [
+    "Manasquan Inlet",
+    "Barnegat Ridge South",
+    "Barnegat Ridge North",
+    "Seaside Lumps",
+    "Monster Ledge",
+    "Home",
+  ]) {
+    assert.match(sql, new RegExp(destination));
+  }
 });

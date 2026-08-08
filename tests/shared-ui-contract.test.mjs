@@ -25,6 +25,30 @@ test("active board exposes public shared state controls and sync states", async 
   assert.match(app, /saveTripUpdate/);
 });
 
+test("live GPS owns the one shared destination selector", async () => {
+  const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
+  const trackerStart = html.indexOf('id="tracker"');
+  const trackerEnd = html.indexOf('class="seafloor-section', trackerStart);
+  const selector = html.indexOf('id="destinationControl"');
+  const tripFormStart = html.indexOf('id="tripUpdateForm"');
+  const tripFormEnd = html.indexOf("</form>", tripFormStart);
+
+  assert.ok(trackerStart >= 0 && selector > trackerStart && selector < trackerEnd);
+  assert.ok(selector < tripFormStart || selector > tripFormEnd, "destination should not be duplicated inside the log form");
+  for (const destination of [
+    "Manasquan Inlet",
+    "Barnegat Ridge South",
+    "Barnegat Ridge North",
+    "Seaside Lumps",
+    "Monster Ledge",
+    "Home",
+  ]) {
+    assert.match(html.slice(selector, trackerEnd), new RegExp(`<option[^>]*>${destination}</option>`));
+  }
+  assert.match(app, /destinationControl\.addEventListener\("change"/);
+  assert.match(app, /updateDestination/);
+});
+
 test("one trip update form saves the same update to live state and the board log", async () => {
   const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
 

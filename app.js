@@ -477,6 +477,7 @@ function initLocationPin(map, routeLatLngs) {
 
   function onError(error) {
     const permissionDenied = error.code === 1 || error.code === error.PERMISSION_DENIED;
+    if (permissionDenied) stopTracking();
     setLocationState(
       "GPS ERROR",
       permissionDenied

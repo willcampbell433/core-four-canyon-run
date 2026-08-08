@@ -224,6 +224,8 @@ test("live GPS explains permission and browser failures", async () => {
   denied.fail({ code: 1, PERMISSION_DENIED: 1 });
   assert.equal(denied.els.locationState.textContent, "GPS ERROR");
   assert.match(denied.els.locationStatus.textContent, /permission.*blocked/i);
+  assert.equal(denied.els.locateButton.textContent, "Start live location");
+  assert.equal(denied.getClearedWatchId(), 7);
 
   const unsupported = loadLocationTracker(await read("app.js"), { hasGeolocation: false });
   unsupported.click();

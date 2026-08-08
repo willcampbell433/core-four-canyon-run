@@ -363,7 +363,9 @@ small {
 }
 
 .shared-controls-heading,
+.shared-controls-help,
 .return-note-control,
+.shared-controls-save,
 .sync-error {
   grid-column: 1 / -1;
 }
@@ -373,6 +375,23 @@ small {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.shared-controls-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.shared-controls-save {
+  width: 100%;
+}
+
+.shared-controls-save:disabled {
+  cursor: wait;
+  opacity: 0.62;
 }
 
 .sync-state {

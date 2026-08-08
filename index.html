@@ -113,14 +113,17 @@
               <strong>Late afternoon, exact time TBD</strong>
             </div>
           </div>
-          <div class="shared-controls" aria-label="Shared trip controls">
+          <form class="shared-controls" id="tripStateForm" aria-label="Live trip status update">
             <div class="shared-controls-heading">
               <div>
-                <small>Shared board</small>
-                <strong>Anyone with this link can update it</strong>
+                <small>Live trip status</small>
+                <strong>Update the current trip for everyone</strong>
               </div>
               <span class="sync-state" id="syncState" data-state="pending" aria-live="polite">Pending</span>
             </div>
+            <p class="shared-controls-help">
+              This changes the live trip status, destination, and return note. Add timestamped catches and updates in the trip log below.
+            </p>
             <label>
               Status
               <select id="tripStatusControl">
@@ -145,8 +148,9 @@
               Return note
               <input id="returnNoteControl" maxlength="160" value="Late afternoon, exact time TBD" />
             </label>
+            <button class="primary-action shared-controls-save" id="saveTripStateButton" type="submit" disabled>Save trip update</button>
             <p class="sync-error" id="syncError" hidden></p>
-          </div>
+          </form>
           <div class="boat-strip">
             <span class="boat-icon" aria-hidden="true"></span>
             <div>

@@ -24,6 +24,11 @@ function plainError(error) {
   return message;
 }
 
+function isRejectedValue(error) {
+  const message = error?.message || String(error || "");
+  return error?.code === "23514" || /check constraint|violates check/i.test(message);
+}
+
 export function createSharedStore({
   client,
   storage = globalThis.localStorage,
@@ -124,6 +129,28 @@ export function createSharedStore({
         queue.shift();
         persistQueue();
       } catch (error) {
+        if (isRejectedValue(error)) {
+          queue.shift();
+          persistQueue();
+          try {
+            const remote = await client.load(snapshot.trip?.slug || "fab-five-2026-08-08");
+            snapshot = {
+              ...snapshot,
+              syncState: queue.length ? "pending" : "synced",
+              trip: remote.trip,
+              tripState: remote.tripState,
+              entries: sortEntries(remote.entries || []),
+              error: plainError(error),
+            };
+            cacheSnapshot();
+            emit();
+            if (queue.length) continue;
+            return;
+          } catch (reloadError) {
+            setSyncState(online() ? "pending" : "offline", plainError(reloadError));
+            return;
+          }
+        }
         setSyncState(online() ? "pending" : "offline", plainError(error));
         return;
       }

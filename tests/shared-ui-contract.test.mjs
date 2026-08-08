@@ -47,6 +47,48 @@ test("one trip update form saves the same update to live state and the board log
   assert.match(app, /await sharedStore\.saveTripUpdate\(\{[\s\S]*state:[\s\S]*entry/);
 });
 
+test("the active update flow uses one Trip Log name and reports the latest entry time", async () => {
+  const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
+
+  assert.doesNotMatch(`${html}\n${app}`, /Board Log|Board log|board-log/);
+  assert.match(html, /<h2>Trip log<\/h2>/);
+  assert.match(html, /adds a timestamped entry to the Trip Log/);
+  assert.match(app, /els\.lastUpdate\.textContent = entries\.length\s*\? entryTime\(entries\.at\(-1\)\)\s*:\s*"Stand by"/);
+  assert.doesNotMatch(app, /touchLastUpdate/);
+});
+
+test("obsolete UI hooks and styles from removed feature paths stay deleted", async () => {
+  const [html, app, styles] = await Promise.all([
+    read("index.html"),
+    read("app.js"),
+    read("styles.css"),
+  ]);
+
+  assert.doesNotMatch(app, /offshoreSpots|galleryGrid/);
+  assert.doesNotMatch(html, /id="(?:runTime|galleryGrid)"/);
+  assert.doesNotMatch(styles, /phase-buttons|phase-display|tracker-card|eta-readout/);
+  assert.doesNotMatch(styles, /\.log-form \+ \.secondary-action\.full/);
+});
+
+test("custom regions and grouped readouts expose their accessibility roles", async () => {
+  const html = await read("index.html");
+
+  for (const label of [
+    "Live GPS readouts",
+    "Fishing grounds",
+    "Canyon intel",
+    "Current shared trip status",
+    "Fish Box Standings",
+  ]) {
+    assert.match(html, new RegExp(`role="(?:region|group)" aria-label="${label}"`));
+  }
+  assert.match(html, /<section class="mission-panel" aria-label="Mission countdown">/);
+  assert.match(html, /<section class="seafloor-panel" aria-label="Seafloor profile">/);
+  assert.match(html, /<section id="leafletMap" aria-label="Trip route map"><\/section>/);
+  assert.match(html, /<aside class="boat-facts" aria-label="Boat details">/);
+  assert.match(html, /<aside class="map-notes" aria-label="Route notes">/);
+});
+
 test("catch details appear only for fish entries", async () => {
   const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
 

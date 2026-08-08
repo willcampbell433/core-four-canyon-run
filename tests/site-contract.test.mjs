@@ -195,7 +195,7 @@ test("active conditions use the Manasquan Inlet tide station", async () => {
 
 test("stored trip logs migrate away from the old Barnegat detour", async () => {
   const app = await read("app.js");
-  const setup = app.slice(0, app.indexOf("function touchLastUpdate"));
+  const setup = app.slice(0, app.indexOf("function renderTimeline"));
   const oldMoment = "Target the Jordan Road bridge opening, then run south through the bay toward Barnegat Inlet.";
   const savedEntries = [
     { time: "Aug 8, 5:30 AM", type: "Plan", method: "Running", moment: oldMoment },
@@ -221,7 +221,7 @@ test("stored trip logs migrate away from the old Barnegat detour", async () => {
 
 test("hosted 6:00 AM underway update appears for returning visitors", async () => {
   const app = await read("app.js");
-  const setup = app.slice(0, app.indexOf("function touchLastUpdate"));
+  const setup = app.slice(0, app.indexOf("function renderTimeline"));
   const context = {
     document: { querySelector: () => ({}) },
     localStorage: {

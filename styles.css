@@ -708,6 +708,25 @@ small {
   color: #04101d;
 }
 
+.tracker-destination {
+  width: 100%;
+  margin-top: 18px;
+}
+
+.tracker-destination select:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.destination-save-state {
+  display: block;
+  min-height: 1.3em;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
 .tracker-control .map-button:hover {
   border-color: var(--text);
   background: #a0ffe9;

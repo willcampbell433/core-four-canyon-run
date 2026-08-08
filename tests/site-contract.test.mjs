@@ -6,7 +6,7 @@ import { runInNewContext } from "node:vm";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
 function loadLocationTracker(app, { hasGeolocation = true } = {}) {
-  const start = app.indexOf("function setLocationState");
+  const start = app.indexOf("function setTrackerDestination");
   const end = app.indexOf("/* ---------- Live weather (Open-Meteo) ---------- */");
   assert.ok(start >= 0 && end > start, "location tracker logic should be extractable");
 
@@ -73,6 +73,7 @@ function loadLocationTracker(app, { hasGeolocation = true } = {}) {
       : {},
     points,
     trackerDestination: points.ridgeSouth,
+    latestTrackerFix: null,
     compass: () => "NE",
     nmBetween: (_position, target) => {
       distanceTarget = target;
@@ -111,6 +112,44 @@ function renderTrackerEta(app, remainingNm) {
     trackerDestination,
   });
   return els.etaReadout.textContent;
+}
+
+function loadDestinationSelection(app) {
+  const start = app.indexOf("function setTrackerDestination");
+  const end = app.indexOf("function setLocationState");
+  assert.ok(start >= 0 && end > start, "destination selection logic should be extractable");
+
+  let distanceTarget = null;
+  const els = {
+    etaReadout: { textContent: "" },
+    currentTripDestination: { textContent: "Barnegat Ridge South" },
+  };
+  const points = {
+    ridgeSouth: { lat: 39.646433, lon: -73.783583, label: "Barnegat Ridge South" },
+    monsterLedge: { lat: 40.101533, lon: -73.5505, label: "Monster Ledge" },
+    home: { lat: 40.0644, lon: -74.0875, label: "Home" },
+  };
+  const context = {
+    els,
+    points,
+    trackerDestination: points.ridgeSouth,
+    latestTrackerFix: { latitude: 40.05, longitude: -74.02, speed: 6.2 },
+    nmBetween: (_position, destination) => {
+      distanceTarget = destination;
+      return 10;
+    },
+    Date,
+  };
+  runInNewContext(
+    `${app.slice(start, end)}\nglobalThis.chooseDestination = setTrackerDestination;`,
+    context,
+  );
+
+  return {
+    els,
+    choose: (label) => context.chooseDestination(label),
+    target: () => distanceTarget,
+  };
 }
 
 function renderTripClockAt(app, nowIso) {
@@ -317,7 +356,7 @@ test("live GPS exposes connecting, live, and paused states", async () => {
   assert.equal(tracker.els.locationState.textContent, "LIVE");
   assert.match(tracker.els.positionReadout.textContent, /39\.7500, -73\.9000.*12 m/);
   assert.match(tracker.els.speedCourseReadout.textContent, /12\.1 kt.*NE 45°/);
-  assert.equal(tracker.els.etaReadout.textContent, "10.0 nm | 6.2 m/s");
+  assert.match(tracker.els.etaReadout.textContent, /10\.0 nm to Barnegat Ridge South.*ETA/);
   assert.equal(tracker.trailPoints.length, 1);
   assert.equal(tracker.trailPoints[0][0], 39.75);
   assert.equal(tracker.trailPoints[0][1], -73.9);
@@ -339,6 +378,21 @@ test("live GPS targets Barnegat Ridge South as the next destination", async () =
   assert.equal(tracker.getDistanceTarget().lat, 39.646433);
   assert.equal(tracker.getDistanceTarget().lon, -73.783583);
   assert.equal(renderTrackerEta(app, 10), "10.0 nm to Barnegat Ridge South");
+});
+
+test("changing the tracker destination immediately recalculates ETA to that waypoint", async () => {
+  const selector = loadDestinationSelection(await read("app.js"));
+
+  assert.equal(selector.choose("Monster Ledge"), true);
+  assert.equal(selector.target().lat, 40.101533);
+  assert.equal(selector.target().lon, -73.5505);
+  assert.match(selector.els.etaReadout.textContent, /10\.0 nm to Monster Ledge.*ETA/);
+  assert.equal(selector.els.currentTripDestination.textContent, "Monster Ledge");
+
+  assert.equal(selector.choose("Home"), true);
+  assert.equal(selector.target().lat, 40.0644);
+  assert.equal(selector.target().lon, -74.0875);
+  assert.match(selector.els.etaReadout.textContent, /10\.0 nm to Home.*ETA/);
 });
 
 test("live GPS explains permission and browser failures", async () => {

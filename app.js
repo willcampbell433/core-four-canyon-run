@@ -45,9 +45,16 @@ const points = {
     label: "Monster Ledge",
     note: "Current next stop, northeast of Manasquan Inlet. Work the ledge and nearby pot line for tuna, sharks, and mahi.",
   },
+  home: {
+    lat: 40.0644,
+    lon: -74.0875,
+    label: "Home",
+    note: "Return destination at Manorside dock.",
+  },
 };
 
 let trackerDestination = points.ridgeSouth;
+let latestTrackerFix = null;
 
 const route = [
   points.manorside,
@@ -152,6 +159,7 @@ const els = {
   tripUpdateInput: document.querySelector("#tripUpdateInput"),
   tripStatusControl: document.querySelector("#tripStatusControl"),
   destinationControl: document.querySelector("#destinationControl"),
+  destinationSaveState: document.querySelector("#destinationSaveState"),
   typeInput: document.querySelector("#typeInput"),
   methodInput: document.querySelector("#methodInput"),
   anglerInput: document.querySelector("#anglerInput"),
@@ -324,6 +332,25 @@ function nmBetween(a, b) {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
+function setTrackerDestination(label) {
+  const destination = Object.values(points).find((point) => point.label === label);
+  if (!destination) return false;
+  trackerDestination = destination;
+  if (els.currentTripDestination) els.currentTripDestination.textContent = destination.label;
+  refreshTrackerEta();
+  return true;
+}
+
+function refreshTrackerEta() {
+  if (!els.etaReadout) return;
+  if (!latestTrackerFix) {
+    els.etaReadout.textContent = `Start live location for distance and ETA to ${trackerDestination.label}.`;
+    return;
+  }
+  const { latitude, longitude, speed } = latestTrackerFix;
+  updateEta(nmBetween({ lat: latitude, lon: longitude }, trackerDestination), speed);
+}
+
 function updateEta(remainingNm, speedMs) {
   if (!els.etaReadout) return;
   if (remainingNm < 1) {
@@ -444,6 +471,7 @@ function initLocationPin(map, routeLatLngs) {
   function onPosition(position) {
     const { latitude, longitude, accuracy, speed, heading } = position.coords;
     const latLng = [latitude, longitude];
+    latestTrackerFix = { latitude, longitude, speed };
 
     if (locationMarker) locationMarker.remove();
     if (accuracyCircle) accuracyCircle.remove();
@@ -484,7 +512,7 @@ function initLocationPin(map, routeLatLngs) {
     }
     setLocationState("LIVE", "Position is updating on the route chart above.");
 
-    updateEta(nmBetween({ lat: latitude, lon: longitude }, trackerDestination), speed);
+    refreshTrackerEta();
     locationMarker.bindPopup(
       `<strong>Ofishal Business</strong><br>${latitude.toFixed(4)}, ${longitude.toFixed(4)}<br>GPS accuracy: ~${Math.round(accuracy)} m`,
     );
@@ -1104,9 +1132,8 @@ function renderSharedSnapshot(snapshot) {
     if (document.activeElement !== els.tripStatusControl) els.tripStatusControl.value = state.status;
     if (document.activeElement !== els.destinationControl) els.destinationControl.value = state.active_destination;
     els.currentTripStatus.textContent = formatTripStatus(state.status);
-    els.currentTripDestination.textContent = state.active_destination;
     els.currentTripNote.textContent = state.return_note;
-    trackerDestination = Object.values(points).find((point) => point.label === state.active_destination) || points.ridgeSouth;
+    setTrackerDestination(state.active_destination);
   }
 
   const labels = {
@@ -1132,6 +1159,7 @@ async function setupSharedBoard() {
   sharedStore.subscribe(renderSharedSnapshot);
   await sharedStore.start();
   els.saveTripUpdateButton.disabled = false;
+  els.destinationControl.disabled = false;
   await setupSharedPhotos(client, sharedStore.getSnapshot().trip);
   window.addEventListener("online", () => sharedStore.replayQueue());
 }
@@ -1140,6 +1168,29 @@ async function setupSharedBoard() {
 
 els.typeInput.addEventListener("change", updateCatchDetailsVisibility);
 updateCatchDetailsVisibility();
+
+els.destinationControl.addEventListener("change", async () => {
+  const destination = els.destinationControl.value;
+  if (!setTrackerDestination(destination) || !sharedStore) return;
+
+  els.destinationControl.disabled = true;
+  if (els.destinationSaveState) els.destinationSaveState.textContent = "Saving for everyone...";
+  await sharedStore.updateDestination(destination);
+  const snapshot = sharedStore.getSnapshot();
+  els.destinationControl.disabled = false;
+  if (snapshot.error) {
+    const savedDestination = snapshot.tripState?.active_destination || points.ridgeSouth.label;
+    els.destinationControl.value = savedDestination;
+    setTrackerDestination(savedDestination);
+    if (els.destinationSaveState) els.destinationSaveState.textContent = "Could not save. Try again.";
+    return;
+  }
+  if (els.destinationSaveState) {
+    els.destinationSaveState.textContent = snapshot.queuedCount
+      ? "Destination queued until the connection returns."
+      : "Destination saved for everyone.";
+  }
+});
 
 els.tripUpdateForm.addEventListener("submit", async (event) => {
   event.preventDefault();

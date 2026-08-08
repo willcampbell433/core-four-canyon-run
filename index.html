@@ -233,6 +233,18 @@
           <div class="tracker-control">
             <span class="location-state" id="locationState" data-state="off">GPS OFF</span>
             <p id="locationStatus" aria-live="polite">Start live tracking to follow the boat on the chart.</p>
+            <label class="tracker-destination" for="destinationControl">
+              ETA destination
+              <select id="destinationControl" disabled>
+                <option>Manasquan Inlet</option>
+                <option selected>Barnegat Ridge South</option>
+                <option>Barnegat Ridge North</option>
+                <option>Seaside Lumps</option>
+                <option>Monster Ledge</option>
+                <option>Home</option>
+              </select>
+            </label>
+            <small class="destination-save-state" id="destinationSaveState" aria-live="polite">Shared with everyone.</small>
             <button class="map-button" id="locateButton" type="button">Start live location</button>
           </div>
           <div class="tracker-readouts" role="group" aria-label="Live GPS readouts">
@@ -504,17 +516,6 @@
                 <option value="fishing">Fishing</option>
                 <option value="heading-home">Heading home</option>
                 <option value="recap">Recap</option>
-              </select>
-            </label>
-            <label>
-              Destination
-              <select id="destinationControl">
-                <option>Manasquan Inlet</option>
-                <option selected>Barnegat Ridge South</option>
-                <option>Barnegat Ridge North</option>
-                <option>Seaside Lumps</option>
-                <option>Monster Ledge</option>
-                <option>Home</option>
               </select>
             </label>
             <label>

@@ -370,6 +370,30 @@ test("the store exposes only the single create flow plus edit and delete", () =>
   assert.equal(store.addEntry, undefined);
   assert.equal(store.updateTripState, undefined);
   assert.equal(typeof store.saveTripUpdate, "function");
+  assert.equal(typeof store.updateDestination, "function");
   assert.equal(typeof store.updateEntry, "function");
   assert.equal(typeof store.deleteEntry, "function");
+});
+
+test("destination-only updates shared trip state without creating a log entry", async () => {
+  const mutations = [];
+  const store = createSharedStore({
+    client: {
+      load: async () => serverSnapshot,
+      subscribe: () => () => {},
+      mutate: async (mutation) => mutations.push(mutation),
+    },
+    storage: memoryStorage(),
+    now: () => "2026-08-08T19:58:00.000Z",
+  });
+  await store.start();
+
+  await store.updateDestination("Monster Ledge");
+
+  assert.equal(store.getSnapshot().tripState.active_destination, "Monster Ledge");
+  assert.equal(store.getSnapshot().entries.length, 1);
+  assert.equal(mutations.length, 1);
+  assert.equal(mutations[0].kind, "update-state");
+  assert.equal(mutations[0].row.active_destination, "Monster Ledge");
+  assert.equal(mutations[0].row.return_note, "Late afternoon");
 });

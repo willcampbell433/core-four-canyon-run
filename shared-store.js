@@ -207,6 +207,29 @@ export function createSharedStore({
     await replayQueue();
   }
 
+  async function updateDestination(activeDestination) {
+    const timestamp = now();
+    const tripId = snapshot.tripState?.trip_id
+      || snapshot.trip?.id
+      || "fabe5000-0000-4000-8000-000000000001";
+    const stateRow = {
+      status: "underway",
+      return_note: "Late afternoon, exact time TBD",
+      ...snapshot.tripState,
+      trip_id: tripId,
+      active_destination: activeDestination,
+      updated_at: timestamp,
+    };
+    delete stateRow._pending;
+
+    snapshot.tripState = { ...stateRow, _pending: Boolean(client) };
+    if (client) enqueue({ kind: "update-state", row: stateRow });
+    cacheSnapshot();
+    emit();
+    await replayQueue();
+    return stateRow;
+  }
+
   async function saveTripUpdate({ state, entry }) {
     const timestamp = now();
     const tripId = snapshot.tripState?.trip_id
@@ -256,6 +279,7 @@ export function createSharedStore({
     },
     updateEntry,
     deleteEntry,
+    updateDestination,
     saveTripUpdate,
     replayQueue,
     destroy() {

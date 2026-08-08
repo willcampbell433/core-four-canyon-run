@@ -14,7 +14,15 @@ if (/service[_-]?role/i.test(publishableKey)) {
 await rm(outputRoot, { recursive: true, force: true });
 await mkdir(outputRoot, { recursive: true });
 
-for (const path of ["index.html", "styles.css", "app.js", "shared-store.js", "assets", "archive"]) {
+for (const path of [
+  "index.html",
+  "styles.css",
+  "app.js",
+  "shared-store.js",
+  "photo-utils.js",
+  "assets",
+  "archive",
+]) {
   await cp(join(sourceRoot, path), join(outputRoot, path), { recursive: true });
 }
 

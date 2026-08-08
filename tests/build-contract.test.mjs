@@ -39,9 +39,11 @@ test("generator writes only browser-safe public Supabase configuration", async (
 
   assert.equal(result.status, 0, result.stderr);
   const config = await readFile(join(workdir, "dist/shared-config.js"), "utf8");
+  const photoUtils = await readFile(join(workdir, "dist/photo-utils.js"), "utf8");
   assert.match(config, /https:\/\/example\.supabase\.co/);
   assert.match(config, /sb_publishable_safe/);
   assert.doesNotMatch(config, /service_role/);
+  assert.match(photoUtils, /preparePhoto/);
 });
 
 test("generator rejects a service-role credential", () => {

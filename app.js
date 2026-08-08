@@ -131,7 +131,10 @@ const els = {
   tideList: document.querySelector("#tideList"),
   runDistance: document.querySelector("#runDistance"),
   locateButton: document.querySelector("#locateButton"),
+  locationState: document.querySelector("#locationState"),
   locationStatus: document.querySelector("#locationStatus"),
+  positionReadout: document.querySelector("#positionReadout"),
+  speedCourseReadout: document.querySelector("#speedCourseReadout"),
   etaReadout: document.querySelector("#etaReadout"),
   crewTally: document.querySelector("#crewTally"),
   buoyHead: document.querySelector("#buoyHead"),
@@ -311,11 +314,17 @@ function updateEta(remainingNm, speedMs) {
   els.etaReadout.textContent = `${remainingNm.toFixed(1)} nm to Seaside Lumps${etaText}`;
 }
 
+function setLocationState(state, message) {
+  if (els.locationState) {
+    els.locationState.textContent = state;
+    els.locationState.dataset.state = state.toLowerCase().replace("gps ", "");
+  }
+  if (els.locationStatus) els.locationStatus.textContent = message;
+}
+
 function initMap() {
   if (typeof L === "undefined") {
-    if (els.locationStatus) {
-      els.locationStatus.textContent = "Map library did not load. Conditions and trip log still work.";
-    }
+    setLocationState("GPS ERROR", "The route chart did not load, so live tracking is unavailable. The rest of the board still works.");
     return;
   }
 
@@ -450,10 +459,15 @@ function initLocationPin(map, routeLatLngs) {
       map.panTo(latLng);
     }
 
-    const knots = Number.isFinite(speed) && speed !== null ? ` | ${(speed * 1.94384).toFixed(1)} kt` : "";
-    const course = Number.isFinite(heading) && heading !== null ? ` | ${compass(heading)} ${Math.round(heading)}°` : "";
-    els.locationStatus.textContent =
-      `Live: ${latitude.toFixed(4)}, ${longitude.toFixed(4)} (±${Math.round(accuracy)} m)${knots}${course}`;
+    const speedReadout = Number.isFinite(speed) && speed !== null ? `${(speed * 1.94384).toFixed(1)} kt` : "Speed unavailable";
+    const courseReadout = Number.isFinite(heading) && heading !== null ? `${compass(heading)} ${Math.round(heading)}°` : "Course unavailable";
+    if (els.positionReadout) {
+      els.positionReadout.textContent = `${latitude.toFixed(4)}, ${longitude.toFixed(4)} (±${Math.round(accuracy)} m)`;
+    }
+    if (els.speedCourseReadout) {
+      els.speedCourseReadout.textContent = `${speedReadout} | ${courseReadout}`;
+    }
+    setLocationState("LIVE", "Position is updating on the route chart above.");
 
     updateEta(nmBetween({ lat: latitude, lon: longitude }, points.seasideLumps), speed);
     locationMarker.bindPopup(
@@ -462,25 +476,28 @@ function initLocationPin(map, routeLatLngs) {
   }
 
   function onError(error) {
-    els.locationStatus.textContent =
-      error.code === error.PERMISSION_DENIED
+    const permissionDenied = error.code === 1 || error.code === error.PERMISSION_DENIED;
+    setLocationState(
+      "GPS ERROR",
+      permissionDenied
         ? "Location permission was blocked. Enable it in the browser to track."
-        : "Lost the GPS fix. Still trying…";
+        : "Lost the GPS fix. Still trying to reconnect…",
+    );
   }
 
   els.locateButton.addEventListener("click", () => {
     if (!navigator.geolocation) {
-      els.locationStatus.textContent = "GPS is not available in this browser.";
+      setLocationState("GPS ERROR", "GPS is not available in this browser.");
       return;
     }
 
     if (watchId !== null) {
       stopTracking();
-      els.locationStatus.textContent = "Live tracking paused. Trail kept on the chart.";
+      setLocationState("PAUSED", "Live tracking paused. Your trail stays on the chart.");
       return;
     }
 
-    els.locationStatus.textContent = "Waiting on GPS permission…";
+    setLocationState("CONNECTING", "Waiting on GPS permission and a position fix…");
     els.locateButton.textContent = "Stop live location";
     firstFix = true;
     watchId = navigator.geolocation.watchPosition(onPosition, onError, {

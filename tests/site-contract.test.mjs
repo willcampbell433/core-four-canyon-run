@@ -5,6 +5,90 @@ import { runInNewContext } from "node:vm";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
+function loadLocationTracker(app, { hasGeolocation = true } = {}) {
+  const start = app.indexOf("function setLocationState");
+  const end = app.indexOf("/* ---------- Live weather (Open-Meteo) ---------- */");
+  assert.ok(start >= 0 && end > start, "location tracker logic should be extractable");
+
+  let click;
+  let success;
+  let failure;
+  let clearedWatchId = null;
+  const trailPoints = [];
+  const els = {
+    locateButton: {
+      textContent: "Start live location",
+      addEventListener: (event, handler) => {
+        assert.equal(event, "click");
+        click = handler;
+      },
+    },
+    locationState: { textContent: "GPS OFF", dataset: { state: "off" } },
+    locationStatus: { textContent: "" },
+    positionReadout: { textContent: "" },
+    speedCourseReadout: { textContent: "" },
+    etaReadout: { textContent: "" },
+  };
+  const layer = () => ({
+    addTo() {
+      return this;
+    },
+    bindPopup() {
+      return this;
+    },
+    remove() {},
+  });
+  const context = {
+    els,
+    L: {
+      circle: layer,
+      circleMarker: layer,
+      polyline: () => ({
+        addTo() {
+          return this;
+        },
+        setLatLngs(points) {
+          trailPoints.splice(0, trailPoints.length, ...points);
+        },
+      }),
+    },
+    navigator: hasGeolocation
+      ? {
+          geolocation: {
+            watchPosition(onSuccess, onFailure) {
+              success = onSuccess;
+              failure = onFailure;
+              return 7;
+            },
+            clearWatch(id) {
+              clearedWatchId = id;
+            },
+          },
+        }
+      : {},
+    points: { seasideLumps: { lat: 39.9169, lon: -73.9008 } },
+    compass: () => "NE",
+    nmBetween: () => 10,
+    updateEta: (remainingNm, speed) => {
+      els.etaReadout.textContent = `${remainingNm.toFixed(1)} nm | ${speed.toFixed(1)} m/s`;
+    },
+  };
+  runInNewContext(
+    `${app.slice(start, end)}\nglobalThis.startLocationTracker = initLocationPin;`,
+    context,
+  );
+  context.startLocationTracker({ fitBounds() {}, panTo() {} }, [[39.9, -74.1]]);
+
+  return {
+    els,
+    click: () => click(),
+    succeed: (position) => success(position),
+    fail: (error) => failure(error),
+    trailPoints,
+    getClearedWatchId: () => clearedWatchId,
+  };
+}
+
 test("active board contains the Fab Five mission contract", async () => {
   const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
   for (const value of [
@@ -110,6 +194,41 @@ test("live GPS has a dedicated section below the route map", async () => {
   assert.match(html, /id="locateButton"/);
   assert.match(styles, /\.tracker-section/);
   assert.match(styles, /\.tracker-readouts/);
+});
+
+test("live GPS exposes connecting, live, and paused states", async () => {
+  const tracker = loadLocationTracker(await read("app.js"));
+
+  tracker.click();
+  assert.equal(tracker.els.locationState.textContent, "CONNECTING");
+
+  tracker.succeed({
+    coords: { latitude: 39.75, longitude: -73.9, accuracy: 12, speed: 6.2, heading: 45 },
+  });
+  assert.equal(tracker.els.locationState.textContent, "LIVE");
+  assert.match(tracker.els.positionReadout.textContent, /39\.7500, -73\.9000.*12 m/);
+  assert.match(tracker.els.speedCourseReadout.textContent, /12\.1 kt.*NE 45°/);
+  assert.equal(tracker.els.etaReadout.textContent, "10.0 nm | 6.2 m/s");
+  assert.equal(tracker.trailPoints.length, 1);
+  assert.equal(tracker.trailPoints[0][0], 39.75);
+  assert.equal(tracker.trailPoints[0][1], -73.9);
+
+  tracker.click();
+  assert.equal(tracker.els.locationState.textContent, "PAUSED");
+  assert.equal(tracker.getClearedWatchId(), 7);
+});
+
+test("live GPS explains permission and browser failures", async () => {
+  const denied = loadLocationTracker(await read("app.js"));
+  denied.click();
+  denied.fail({ code: 1, PERMISSION_DENIED: 1 });
+  assert.equal(denied.els.locationState.textContent, "GPS ERROR");
+  assert.match(denied.els.locationStatus.textContent, /permission.*blocked/i);
+
+  const unsupported = loadLocationTracker(await read("app.js"), { hasGeolocation: false });
+  unsupported.click();
+  assert.equal(unsupported.els.locationState.textContent, "GPS ERROR");
+  assert.match(unsupported.els.locationStatus.textContent, /not available/i);
 });
 
 test("active live conditions avoid the NDBC text feed CORS failure", async () => {

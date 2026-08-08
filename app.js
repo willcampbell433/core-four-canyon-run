@@ -134,7 +134,6 @@ const els = {
   catchCount: document.querySelector("#catchCount"),
   timeline: document.querySelector("#timelineList"),
   form: document.querySelector("#logForm"),
-  copyLogButton: document.querySelector("#copyLogButton"),
   replacementGrade: document.querySelector("#replacementGrade"),
   tideList: document.querySelector("#tideList"),
   runDistance: document.querySelector("#runDistance"),
@@ -152,7 +151,6 @@ const els = {
   saveTripStateButton: document.querySelector("#saveTripStateButton"),
   syncState: document.querySelector("#syncState"),
   syncError: document.querySelector("#syncError"),
-  publishLocalButton: document.querySelector("#publishLocalButton"),
   buoyHead: document.querySelector("#buoyHead"),
   buoyMetrics: document.querySelector("#buoyMetrics"),
   buoyNote: document.querySelector("#buoyNote"),
@@ -231,38 +229,6 @@ function readEntries() {
 
 function writeEntries(entries) {
   localStorage.setItem(storageKey, JSON.stringify(entries));
-}
-
-function formatBoardLogExport(entries) {
-  const lines = entries.map((entry) => {
-    const angler = entry.angler ? ` / ${entry.angler}` : "";
-    return `- ${entryTime(entry)}: ${entry.moment} (${entryType(entry)} / ${entry.method}${angler})`;
-  });
-  return `The Fab Five | Aug 8, 2026 board log\n\n${lines.join("\n")}\n\nRaw JSON:\n${JSON.stringify(entries, null, 2)}`;
-}
-
-async function copyBoardLog() {
-  if (!els.copyLogButton) return;
-  const entries = activeEntries();
-  const text = formatBoardLogExport(entries);
-  try {
-    await navigator.clipboard.writeText(text);
-    els.copyLogButton.textContent = "Board log copied";
-  } catch {
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    textarea.setAttribute("readonly", "");
-    textarea.style.position = "fixed";
-    textarea.style.top = "-9999px";
-    document.body.appendChild(textarea);
-    textarea.select();
-    document.execCommand("copy");
-    textarea.remove();
-    els.copyLogButton.textContent = "Board log copied";
-  }
-  setTimeout(() => {
-    els.copyLogButton.textContent = "Copy board log";
-  }, 2500);
 }
 
 function touchLastUpdate() {
@@ -942,19 +908,6 @@ async function setupSharedBoard() {
   sharedStore.subscribe(renderSharedSnapshot);
   await sharedStore.start();
   els.saveTripStateButton.disabled = false;
-
-  const hostedMoments = new Set(seedEntries.map((entry) => entry.moment));
-  const publishable = localEntries.filter((entry) => !hostedMoments.has(entry.moment));
-  if (client && publishable.length) {
-    els.publishLocalButton.hidden = false;
-    els.publishLocalButton.addEventListener("click", async () => {
-      for (const [index, entry] of publishable.entries()) {
-        const row = legacyEntryToShared(entry, index + seedEntries.length);
-        await sharedStore.addEntry(row);
-      }
-      els.publishLocalButton.hidden = true;
-    }, { once: true });
-  }
   window.addEventListener("online", () => sharedStore.replayQueue());
 }
 
@@ -1026,10 +979,6 @@ els.tripStateForm.addEventListener("submit", async (event) => {
   els.saveTripStateButton.textContent = saved ? "Trip update saved" : "Try again";
   els.saveTripStateButton.disabled = false;
 });
-
-if (els.copyLogButton) {
-  els.copyLogButton.addEventListener("click", copyBoardLog);
-}
 
 function runStartupTask(name, task) {
   try {

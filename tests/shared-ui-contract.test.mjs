@@ -45,6 +45,16 @@ test("active log supports public edit and confirmed delete", async () => {
   assert.match(app, /deleteEntry/);
 });
 
+test("shared log relies on automatic persistence without legacy manual actions", async () => {
+  const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
+
+  assert.doesNotMatch(html, /Publish my local entries|Copy board log/);
+  assert.doesNotMatch(html, /id="(?:publishLocalButton|copyLogButton)"/);
+  assert.doesNotMatch(app, /publishLocalButton|copyLogButton|copyBoardLog|formatBoardLogExport/);
+  assert.match(app, /await sharedStore\.addEntry\(entry\)/);
+  assert.match(app, /window\.addEventListener\("online", \(\) => sharedStore\.replayQueue\(\)\)/);
+});
+
 test("Supabase bootstrap maps tables without GPS fields", async () => {
   const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
 

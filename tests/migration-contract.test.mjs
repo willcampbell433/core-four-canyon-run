@@ -10,6 +10,10 @@ const photoMigrationUrl = new URL(
   "../supabase/migrations/20260808165500_trip_photos.sql",
   import.meta.url,
 );
+const photoAppendOnlyMigrationUrl = new URL(
+  "../supabase/migrations/20260808185000_photo_gallery_append_only.sql",
+  import.meta.url,
+);
 
 test("migration enforces public CRUD and realtime contracts", async () => {
   const sql = await readFile(migrationUrl, "utf8");
@@ -54,4 +58,13 @@ test("photo migration creates constrained public metadata and storage", async ()
   assert.match(sql, /storage\.foldername\(name\).*fab-five-2026-08-08/is);
   assert.match(sql, /alter publication supabase_realtime add table public\.trip_photos/i);
   assert.doesNotMatch(sql, /service[_-]?role/i);
+});
+
+test("photo gallery is append-only for anonymous visitors", async () => {
+  const sql = await readFile(photoAppendOnlyMigrationUrl, "utf8");
+
+  assert.match(sql, /revoke delete on public\.trip_photos from anon/i);
+  assert.match(sql, /drop policy if exists "Public trip photos are deletable" on public\.trip_photos/i);
+  assert.match(sql, /drop policy if exists "Public active trip photos are deletable" on storage\.objects/i);
+  assert.doesNotMatch(sql, /create policy[^;]+for delete/is);
 });

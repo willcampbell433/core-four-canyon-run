@@ -821,10 +821,6 @@ async function createSharedClient() {
     return result.data;
   }
 
-  async function removeUploadedObject(storagePath) {
-    unwrap(await supabase.storage.from("trip-photos").remove([storagePath]));
-  }
-
   return {
     async load(slug) {
       const trip = unwrap(await supabase.from("trips").select("*").eq("slug", slug).single());
@@ -862,29 +858,16 @@ async function createSharedClient() {
           upsert: false,
         }),
       );
-      try {
-        return unwrap(
-          await supabase.from("trip_photos").insert({
-            id,
-            trip_id: tripId,
-            storage_path: storagePath,
-            caption: caption || null,
-            width,
-            height,
-          }).select("*").single(),
-        );
-      } catch (error) {
-        try {
-          await removeUploadedObject(storagePath);
-        } catch {
-          // The metadata error is the actionable failure; cleanup can be retried from Supabase.
-        }
-        throw error;
-      }
-    },
-    async deletePhoto(photo) {
-      await removeUploadedObject(photo.storage_path);
-      unwrap(await supabase.from("trip_photos").delete().eq("id", photo.id));
+      return unwrap(
+        await supabase.from("trip_photos").insert({
+          id,
+          trip_id: tripId,
+          storage_path: storagePath,
+          caption: caption || null,
+          width,
+          height,
+        }).select("*").single(),
+      );
     },
     photoUrl(storagePath) {
       return supabase.storage.from("trip-photos").getPublicUrl(storagePath).data.publicUrl;
@@ -984,12 +967,7 @@ async function setupSharedPhotos(client, trip) {
       caption.textContent = photo.caption || "Trip photo";
       const timestamp = document.createElement("small");
       timestamp.textContent = formatPhotoTime(photo.created_at);
-      const deleteButton = document.createElement("button");
-      deleteButton.className = "delete-photo-button";
-      deleteButton.type = "button";
-      deleteButton.dataset.photoDelete = photo.id;
-      deleteButton.textContent = "Delete photo";
-      meta.append(caption, timestamp, deleteButton);
+      meta.append(caption, timestamp);
       figure.append(link, meta);
       els.sharedPhotoList.append(figure);
     });
@@ -1069,25 +1047,6 @@ async function setupSharedPhotos(client, trip) {
     els.photoUploadStatus.textContent = failedMessages.length
       ? `${uploadedCount} uploaded. ${failedMessages.join(" ")}`
       : `${uploadedCount} photo${uploadedCount === 1 ? "" : "s"} uploaded.`;
-  });
-
-  els.sharedPhotoList.addEventListener("click", async (event) => {
-    const button = event.target.closest("[data-photo-delete]");
-    if (!button) return;
-    const photo = photos.find((candidate) => candidate.id === button.dataset.photoDelete);
-    if (!photo || !confirm("Delete this shared trip photo?")) return;
-
-    button.disabled = true;
-    els.photoUploadStatus.textContent = "Deleting photo...";
-    try {
-      await client.deletePhoto(photo);
-      photos = photos.filter((candidate) => candidate.id !== photo.id);
-      renderPhotos();
-      els.photoUploadStatus.textContent = "Photo deleted.";
-    } catch (error) {
-      button.disabled = false;
-      els.photoUploadStatus.textContent = photoErrorMessage(error);
-    }
   });
 
   setPhotoAvailability(navigator.onLine);

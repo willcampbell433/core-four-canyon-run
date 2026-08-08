@@ -1399,20 +1399,6 @@ small {
   color: var(--muted);
 }
 
-.delete-photo-button {
-  justify-self: start;
-  padding: 0;
-  border: 0;
-  color: #ffb18a;
-  background: transparent;
-  font-size: 0.8rem;
-  font-weight: 900;
-}
-
-.delete-photo-button:hover {
-  color: var(--orange);
-}
-
 .log-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -81,6 +81,19 @@ test("the active update flow uses one Trip Log name and reports the latest entry
   assert.doesNotMatch(app, /touchLastUpdate/);
 });
 
+test("trip log and catch count sit directly after the crew and before the map", async () => {
+  const html = await read("index.html");
+  const crewStart = html.indexOf('<section class="crew-section section-shell" id="crew">');
+  const logStart = html.indexOf('<section class="tools-grid section-shell" id="log">');
+  const catchCount = html.indexOf('id="catchCount"');
+  const mapStart = html.indexOf('<section class="map-section section-shell" id="map">');
+
+  assert.ok(crewStart >= 0, "crew section should exist");
+  assert.ok(logStart > crewStart, "trip log should follow the crew");
+  assert.ok(catchCount > logStart && catchCount < mapStart, "catch count should stay with the promoted trip log");
+  assert.ok(mapStart > logStart, "trip log should appear before the map");
+});
+
 test("obsolete UI hooks and styles from removed feature paths stay deleted", async () => {
   const [html, app, styles] = await Promise.all([
     read("index.html"),

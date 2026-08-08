@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { runInNewContext } from "node:vm";
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -27,6 +28,52 @@ test("active route lists the confirmed grounds in order", async () => {
   const north = app.indexOf("points.ridgeNorth");
   const lumps = app.indexOf("points.seasideLumps");
   assert.ok(south >= 0 && south < north && north < lumps);
+});
+
+test("active route exits through Manasquan Inlet before the fishing grounds", async () => {
+  const app = await read("app.js");
+  const bridge = app.indexOf("points.jordanRoad");
+  const inlet = app.indexOf("points.manasquanInlet");
+  const south = app.indexOf("points.ridgeSouth");
+
+  assert.ok(bridge >= 0 && bridge < inlet && inlet < south);
+  assert.match(app, /label: "Manasquan Inlet"/);
+  assert.doesNotMatch(app, /label: "Barnegat Inlet"/);
+});
+
+test("active conditions use the Manasquan Inlet tide station", async () => {
+  const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
+  assert.match(`${html}\n${app}`, /Manasquan Inlet tides/);
+  assert.match(`${html}\n${app}`, /8532591/);
+  assert.match(html, /H 3:43 AM, L 9:49 AM, H 4:15 PM, L 11:01 PM/);
+  assert.doesNotMatch(`${html}\n${app}`, /Barnegat Inlet tides/);
+  assert.doesNotMatch(`${html}\n${app}`, /8533615/);
+});
+
+test("stored trip logs migrate away from the old Barnegat detour", async () => {
+  const app = await read("app.js");
+  const setup = app.slice(0, app.indexOf("function formatBoardLogExport"));
+  const oldMoment = "Target the Jordan Road bridge opening, then run south through the bay toward Barnegat Inlet.";
+  const savedEntries = [
+    { time: "Aug 8, 5:30 AM", type: "Plan", method: "Running", moment: oldMoment },
+    { time: "Aug 8, 6:00 AM", type: "Boat life", method: "Running", moment: "User-added entry" },
+  ];
+  const writes = [];
+  const context = {
+    document: { querySelector: () => ({}) },
+    localStorage: {
+      getItem: () => JSON.stringify(savedEntries),
+      setItem: (_key, value) => writes.push(JSON.parse(value)),
+    },
+  };
+
+  runInNewContext(`${setup}\nglobalThis.readTripEntries = readEntries;`, context);
+  const migrated = context.readTripEntries();
+
+  assert.equal(migrated.some((entry) => entry.moment === oldMoment), false);
+  assert.equal(migrated.some((entry) => entry.moment.includes("Manasquan Inlet")), true);
+  assert.equal(migrated.some((entry) => entry.moment === "User-added entry"), true);
+  assert.equal(writes.length, 1);
 });
 
 test("July board remains a separate working archive", async () => {

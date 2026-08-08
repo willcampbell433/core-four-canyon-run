@@ -39,6 +39,7 @@
       </a>
       <nav class="nav-links" aria-label="Primary">
         <a href="#map">Map</a>
+        <a href="#tracker">Live GPS</a>
         <a href="#weather">Weather</a>
         <a href="#crew">Crew</a>
         <a href="#species">Fish</a>
@@ -214,16 +215,43 @@
               <strong>Ridge South → Ridge North → Seaside Lumps</strong>
               <p>Start on the southern ridge, slide north if the marks are thin, then finish at the Seaside Lumps. Find bait, bluefish, birds, whales, and working water.</p>
             </div>
-            <div>
-              <small>Boat pin</small>
-              <strong>Live location</strong>
-              <p id="locationStatus">Start live tracking to follow the boat on the chart in real time.</p>
-              <p id="etaReadout" class="eta-readout">Distance and ETA to Seaside Lumps appear once tracking starts.</p>
-              <button class="map-button" id="locateButton" type="button">Start live location</button>
-            </div>
           </aside>
         </div>
+      </section>
 
+      <section class="tracker-section section-shell" id="tracker" aria-labelledby="trackerHeading">
+        <div class="tracker-shell">
+          <div class="tracker-intro">
+            <div class="section-heading">
+              <span>Live GPS</span>
+              <h2 id="trackerHeading">Follow <em>Ofishal Business</em></h2>
+            </div>
+            <p>Use this device’s GPS to plot the boat on the route chart above while the run is underway.</p>
+            <p class="tracker-disclaimer">For trip awareness only. Navigate with the boat’s chartplotter and the captain’s call.</p>
+          </div>
+          <div class="tracker-control">
+            <span class="location-state" id="locationState" data-state="off">GPS OFF</span>
+            <p id="locationStatus" aria-live="polite">Start live tracking to follow the boat on the chart.</p>
+            <button class="map-button" id="locateButton" type="button">Start live location</button>
+          </div>
+          <div class="tracker-readouts" aria-label="Live GPS readouts">
+            <article>
+              <small>Position + accuracy</small>
+              <strong id="positionReadout">Waiting for a GPS fix</strong>
+            </article>
+            <article>
+              <small>Speed + course</small>
+              <strong id="speedCourseReadout">Available once underway</strong>
+            </article>
+            <article>
+              <small>Distance + ETA</small>
+              <strong id="etaReadout">Available once tracking starts</strong>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="seafloor-section section-shell" id="grounds">
         <div class="seafloor-panel" aria-label="Seafloor reference">
           <div class="seafloor-copy">
             <div class="section-heading">

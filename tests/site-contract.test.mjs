@@ -94,6 +94,24 @@ test("required DOM IDs are unique", async () => {
   assert.equal(new Set(ids).size, ids.length);
 });
 
+test("live GPS has a dedicated section below the route map", async () => {
+  const [html, styles] = await Promise.all([read("index.html"), read("styles.css")]);
+  const mapStart = html.indexOf('<section class="map-section section-shell" id="map">');
+  const trackerStart = html.indexOf('<section class="tracker-section section-shell" id="tracker"');
+  const seafloorStart = html.indexOf('<section class="seafloor-section section-shell"');
+
+  assert.ok(mapStart >= 0 && mapStart < trackerStart && trackerStart < seafloorStart);
+  assert.match(html, /href="#tracker">Live GPS<\/a>/);
+  assert.match(html, /id="locationState"[^>]*>GPS OFF/);
+  assert.match(html, /id="locationStatus"/);
+  assert.match(html, /id="positionReadout"/);
+  assert.match(html, /id="speedCourseReadout"/);
+  assert.match(html, /id="etaReadout"/);
+  assert.match(html, /id="locateButton"/);
+  assert.match(styles, /\.tracker-section/);
+  assert.match(styles, /\.tracker-readouts/);
+});
+
 test("active live conditions avoid the NDBC text feed CORS failure", async () => {
   const app = await read("app.js");
   assert.doesNotMatch(app, /www\.ndbc\.noaa\.gov\/data\/realtime2\/44091\.txt/);

@@ -79,8 +79,6 @@ const weatherFallback = {
   },
 };
 
-const offshoreSpots = [];
-
 const seedEntries = [
   {
     time: "Aug 8, 5:15 AM",
@@ -165,7 +163,6 @@ const els = {
   day2Head: document.querySelector("#day2Head"),
   day2Metrics: document.querySelector("#day2Metrics"),
   sunMoonList: document.querySelector("#sunMoonList"),
-  galleryGrid: document.querySelector("#galleryGrid"),
 };
 
 let sharedStore = null;
@@ -257,13 +254,6 @@ function writeEntries(entries) {
   localStorage.setItem(storageKey, JSON.stringify(entries));
 }
 
-function touchLastUpdate() {
-  els.lastUpdate.textContent = new Date().toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 function renderTimeline(entries = activeEntries()) {
   els.timeline.innerHTML = entries
     .slice()
@@ -284,6 +274,7 @@ function renderTimeline(entries = activeEntries()) {
 
   const catchCount = entries.filter((entry) => /tuna|mahi/i.test(entryType(entry))).length;
   els.catchCount.textContent = String(catchCount);
+  els.lastUpdate.textContent = entries.length ? entryTime(entries.at(-1)) : "Stand by";
   els.replacementGrade.textContent = catchCount > 0 ? "Fish on board" : "Lines not in yet";
   renderTally(entries);
 }
@@ -374,27 +365,13 @@ function initMap() {
   });
 
   const latLngs = route.map((p) => [p.lat, p.lon]);
-  const allLatLngs = [...latLngs, ...offshoreSpots.map((p) => [p.lat, p.lon])];
+  const allLatLngs = latLngs;
   L.polyline(latLngs, {
     color: "#ff8d4d",
     weight: 4,
     dashArray: "4 10",
     lineCap: "round",
   }).addTo(map);
-
-  offshoreSpots.forEach((spot) => {
-    const tip = { direction: "right", offset: [10, 0] };
-    L.circleMarker([spot.lat, spot.lon], {
-      radius: spot.type === "Canyon" ? 8 : 7,
-      color: "#f6fbff",
-      weight: 2,
-      fillColor: spot.type === "Canyon" ? "#6cbcff" : "#f2c94c",
-      fillOpacity: 0.92,
-    })
-      .addTo(map)
-      .bindTooltip(spot.label, { permanent: true, ...tip })
-      .bindPopup(`<strong>${spot.label}</strong><br><small>${spot.type}</small><br>${spot.note}`);
-  });
 
   route.forEach((p, i) => {
     const isEnd = i === 0 || i === route.length - 1;
@@ -901,7 +878,6 @@ function legacyEntryToShared(entry, index) {
 function renderSharedSnapshot(snapshot) {
   sharedEntries = snapshot.entries;
   renderTimeline(snapshot.entries);
-  touchLastUpdate();
 
   const state = snapshot.tripState;
   if (state) {
@@ -993,7 +969,6 @@ els.tripUpdateForm.addEventListener("submit", async (event) => {
     els.methodInput.value = "Trolling";
     els.anglerInput.value = "";
     updateCatchDetailsVisibility();
-    touchLastUpdate();
   }
 });
 
@@ -1005,13 +980,13 @@ els.timeline.addEventListener("click", async (event) => {
   if (editButton) {
     const id = editButton.dataset.entryEdit;
     const entry = activeEntries().find((candidate) => candidate.id === id);
-    const moment = prompt("Edit this board-log moment", entry?.moment || "");
+    const moment = prompt("Edit this trip log entry", entry?.moment || "");
     if (moment && moment.trim()) await sharedStore.updateEntry(id, { moment: moment.trim() });
   }
 
   if (deleteButton) {
     const id = deleteButton.dataset.entryDelete;
-    if (confirm("Delete this shared board-log entry?")) await sharedStore.deleteEntry(id);
+    if (confirm("Delete this shared trip log entry?")) await sharedStore.deleteEntry(id);
   }
 });
 

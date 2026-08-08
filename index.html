@@ -76,7 +76,7 @@
           </div>
         </div>
 
-        <div class="mission-panel" aria-label="Trip mission panel">
+        <section class="mission-panel" aria-label="Mission countdown">
           <div class="panel-topline">
             <span>Trip Clock</span>
             <strong id="missionStatus">Pre-departure</strong>
@@ -120,7 +120,7 @@
               <small>Jigging and trolling. Five-man board meeting. Deliverables measured in pounds.</small>
             </div>
           </div>
-        </div>
+        </section>
       </section>
 
       <section class="crew-section section-shell" id="crew">
@@ -170,7 +170,7 @@
               <span>Headquarters, pictured after hours. All meetings held offshore.</span>
             </figcaption>
           </figure>
-          <aside class="boat-facts">
+          <aside class="boat-facts" aria-label="Boat details">
             <div>
               <small>Boat</small>
               <strong>Henriques 35 Express</strong>
@@ -197,9 +197,9 @@
         </div>
         <div class="map-layout">
           <div class="map-panel">
-            <div id="leafletMap" aria-label="Interactive map of the Fab Five route from Manorside through Manasquan Inlet to the Barnegat Ridges and Seaside Lumps"></div>
+            <section id="leafletMap" aria-label="Trip route map"></section>
           </div>
-          <aside class="map-notes">
+          <aside class="map-notes" aria-label="Route notes">
             <div>
               <small>Departure</small>
               <strong>Manorside, 5:15 AM</strong>
@@ -208,7 +208,7 @@
             <div>
               <small>Run distance</small>
               <strong id="runDistance">Calculating…</strong>
-              <p id="runTime">Planning estimate only. Cruise speed, bridge traffic, inlet conditions, fish, and the captain decide the real timeline.</p>
+              <p>Planning estimate only. Cruise speed, bridge traffic, inlet conditions, fish, and the captain decide the real timeline.</p>
             </div>
             <div>
               <small>Destination</small>
@@ -234,7 +234,7 @@
             <p id="locationStatus" aria-live="polite">Start live tracking to follow the boat on the chart.</p>
             <button class="map-button" id="locateButton" type="button">Start live location</button>
           </div>
-          <div class="tracker-readouts" aria-label="Live GPS readouts">
+          <div class="tracker-readouts" role="group" aria-label="Live GPS readouts">
             <article>
               <small>Position + accuracy</small>
               <strong id="positionReadout">Waiting for a GPS fix</strong>
@@ -252,7 +252,7 @@
       </section>
 
       <section class="seafloor-section section-shell" id="grounds">
-        <div class="seafloor-panel" aria-label="Seafloor reference">
+        <section class="seafloor-panel" aria-label="Seafloor profile">
           <div class="seafloor-copy">
             <div class="section-heading">
               <span>Seafloor Reference</span>
@@ -273,7 +273,7 @@
               NOAA live bluefin status
             </a>
           </div>
-          <div class="spot-grid" aria-label="Planned fishing grounds">
+          <div class="spot-grid" role="group" aria-label="Fishing grounds">
             <article>
               <small>Stop 1</small>
               <strong>Barnegat Ridge South</strong>
@@ -290,7 +290,7 @@
               <span>Nearshore bluefin ground off Seaside Park. Current reports say the bite has been real but mobile.</span>
             </article>
           </div>
-          <div class="canyon-intel" aria-label="Fab Five fishing plan">
+          <div class="canyon-intel" role="group" aria-label="Canyon intel">
             <article>
               <small>The pattern</small>
               <h3>Structure holds the food</h3>
@@ -323,7 +323,7 @@
             73°47.958′ W, Seaside Lump 39°55.014′ N / 73°54.046′ W. Confirm every number on the
             boat’s chartplotter before running or setting up. This board is not a navigation chart.
           </p>
-        </div>
+        </section>
       </section>
 
       <section class="weather-section section-shell" id="weather">
@@ -465,7 +465,7 @@
             </div>
             <span class="sync-state" id="syncState" data-state="pending" aria-live="polite">Pending</span>
           </div>
-          <div class="current-trip-summary" aria-label="Current shared trip status">
+          <div class="current-trip-summary" role="group" aria-label="Current shared trip status">
             <div>
               <small>Status</small>
               <strong id="currentTripStatus">Underway</strong>
@@ -479,7 +479,7 @@
               <strong id="currentTripNote">Late afternoon, exact time TBD</strong>
             </div>
           </div>
-          <p class="trip-update-help">One save updates the live trip and adds a timestamped entry to the Board Log.</p>
+          <p class="trip-update-help">One save updates the live trip and adds a timestamped entry to the Trip Log.</p>
           <form id="tripUpdateForm" class="log-form" aria-label="Add trip update">
             <label class="trip-update-text">
               Update
@@ -551,9 +551,9 @@
         <div class="timeline-panel">
           <div class="section-heading">
             <span>Timeline</span>
-            <h2>Board log</h2>
+            <h2>Trip log</h2>
           </div>
-          <div class="crew-tally" aria-label="Fish Box Standings">
+          <div class="crew-tally" role="group" aria-label="Fish Box Standings">
             <div class="leaderboard-header">
               <small>John vs Bill vs Pete vs Phil vs Will</small>
               <strong>Fish Box Face-Off</strong>
@@ -579,7 +579,7 @@
           <span>After Action</span>
           <h2>Trip gallery</h2>
         </div>
-        <div class="gallery-grid" id="galleryGrid">
+        <div class="gallery-grid">
           <figure class="gallery-photo">
             <img src="assets/ofishal-business-underway.jpg" alt="The Ofishal Business underway in the canal" loading="lazy" />
           </figure>

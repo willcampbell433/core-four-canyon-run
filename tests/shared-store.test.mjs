@@ -57,11 +57,18 @@ test("local-only edits persist without creating an unreplayable queue", async ()
   });
   await store.start();
 
-  await store.addEntry({
-    time_label: "7:30 AM",
-    entry_type: "Quote",
-    method: "Other",
-    moment: "Local fallback still works",
+  await store.saveTripUpdate({
+    state: {
+      status: "underway",
+      active_destination: "Barnegat Ridge South",
+      return_note: "Local fallback still works",
+    },
+    entry: {
+      time_label: "7:30 AM",
+      entry_type: "Quote",
+      method: "Other",
+      moment: "Local fallback still works",
+    },
   });
 
   assert.equal(store.getSnapshot().syncState, "local-only");
@@ -108,24 +115,32 @@ test("offline create is durable and replays once with its client UUID", async ()
   });
   await store.start();
 
-  await store.addEntry({
-    time_label: "7:00 AM",
-    entry_type: "Catch",
-    method: "Jig",
-    angler: "Will",
-    moment: "Bluefin at the rail",
+  await store.saveTripUpdate({
+    state: {
+      status: "fishing",
+      active_destination: "Barnegat Ridge South",
+      return_note: "Bluefin at the rail",
+    },
+    entry: {
+      id: "entry-offline",
+      time_label: "7:00 AM",
+      entry_type: "Tuna",
+      method: "Jig",
+      angler: "Will",
+      moment: "Bluefin at the rail",
+    },
   });
 
   assert.equal(store.getSnapshot().syncState, "offline");
-  assert.equal(store.getSnapshot().queuedCount, 1);
+  assert.equal(store.getSnapshot().queuedCount, 2);
   assert.match(storage.read("ofishal-business-shared-queue-v1"), /entry-offline/);
 
   isOnline = true;
   await store.replayQueue();
   await store.replayQueue();
 
-  assert.equal(mutations.length, 1);
-  assert.equal(mutations[0].row.id, "entry-offline");
+  assert.equal(mutations.length, 2);
+  assert.equal(mutations[1].row.id, "entry-offline");
   assert.equal(store.getSnapshot().syncState, "synced");
 });
 
@@ -183,15 +198,22 @@ test("provided deterministic import UUID is preserved", async () => {
   });
   await store.start();
 
-  await store.addEntry({
-    id: "11111111-1111-4111-8111-111111111111",
-    time_label: "Imported",
-    entry_type: "Quote",
-    method: "Other",
-    moment: "Publish once",
+  await store.saveTripUpdate({
+    state: {
+      status: "recap",
+      active_destination: "Home",
+      return_note: "Publish once",
+    },
+    entry: {
+      id: "11111111-1111-4111-8111-111111111111",
+      time_label: "Imported",
+      entry_type: "Quote",
+      method: "Other",
+      moment: "Publish once",
+    },
   });
 
-  assert.equal(mutations[0].row.id, "11111111-1111-4111-8111-111111111111");
+  assert.equal(mutations[1].row.id, "11111111-1111-4111-8111-111111111111");
 });
 
 test("queued create update delete replay in original order", async () => {
@@ -208,11 +230,19 @@ test("queued create update delete replay in original order", async () => {
     uuid: () => "entry-ordered",
   });
   await store.start();
-  await store.addEntry({
-    time_label: "7:15 AM",
-    entry_type: "Boat life",
-    method: "Running",
-    moment: "First draft",
+  await store.saveTripUpdate({
+    state: {
+      status: "underway",
+      active_destination: "Barnegat Ridge South",
+      return_note: "First draft",
+    },
+    entry: {
+      id: "entry-ordered",
+      time_label: "7:15 AM",
+      entry_type: "Boat life",
+      method: "Running",
+      moment: "First draft",
+    },
   });
   await store.updateEntry("entry-ordered", { moment: "Edited draft" });
   await store.deleteEntry("entry-ordered");
@@ -220,7 +250,7 @@ test("queued create update delete replay in original order", async () => {
 
   await store.replayQueue();
 
-  assert.deepEqual(mutations, ["create-entry", "update-entry", "delete-entry"]);
+  assert.deepEqual(mutations, ["update-state", "create-entry", "update-entry", "delete-entry"]);
   assert.equal(store.getSnapshot().entries.some((entry) => entry.id === "entry-ordered"), false);
 });
 
@@ -274,17 +304,17 @@ test("trip state realtime updates preserve local-only GPS boundary", async () =>
   assert.doesNotMatch(JSON.stringify(snapshot), /latitude|longitude|coordinates/);
 });
 
-test("a rejected trip-state update is rolled back and cannot poison later saves", async () => {
+test("a rejected trip update is rolled back and cannot poison later saves", async () => {
   const mutations = [];
-  let rejectNextMutation = true;
+  let rejectNextEntry = true;
   const store = createSharedStore({
     client: {
       load: async () => serverSnapshot,
       subscribe: () => () => {},
       mutate: async (mutation) => {
         mutations.push(mutation);
-        if (rejectNextMutation) {
-          rejectNextMutation = false;
+        if (mutation.kind === "create-entry" && rejectNextEntry) {
+          rejectNextEntry = false;
           throw new Error('new row violates check constraint "trip_state_return_note_check"');
         }
       },
@@ -293,21 +323,53 @@ test("a rejected trip-state update is rolled back and cannot poison later saves"
   });
   await store.start();
 
-  await store.updateTripState({ return_note: "" });
+  await store.saveTripUpdate({
+    state: {
+      status: "fishing",
+      active_destination: "Barnegat Ridge South",
+      return_note: "Invalid first update",
+    },
+    entry: {
+      id: "rejected-entry",
+      time_label: "8:00 AM",
+      entry_type: "Boat life",
+      method: "Other",
+      moment: "Invalid first update",
+    },
+  });
 
   assert.equal(store.getSnapshot().queuedCount, 0);
   assert.equal(store.getSnapshot().syncState, "synced");
   assert.equal(store.getSnapshot().tripState.return_note, "Late afternoon");
   assert.equal(store.getSnapshot().error, "That update contains an invalid or oversized value.");
 
-  await store.updateTripState({
-    status: "fishing",
-    active_destination: "Barnegat Ridge South",
-    return_note: "Late afternoon, exact time TBD",
+  await store.saveTripUpdate({
+    state: {
+      status: "fishing",
+      active_destination: "Barnegat Ridge South",
+      return_note: "Late afternoon, exact time TBD",
+    },
+    entry: {
+      id: "accepted-entry",
+      time_label: "8:15 AM",
+      entry_type: "Boat life",
+      method: "Other",
+      moment: "Late afternoon, exact time TBD",
+    },
   });
 
-  assert.equal(mutations.length, 2);
+  assert.equal(mutations.length, 4);
   assert.equal(store.getSnapshot().queuedCount, 0);
   assert.equal(store.getSnapshot().syncState, "synced");
   assert.equal(store.getSnapshot().error, null);
+});
+
+test("the store exposes only the single create flow plus edit and delete", () => {
+  const store = createSharedStore({ client: null, storage: memoryStorage() });
+
+  assert.equal(store.addEntry, undefined);
+  assert.equal(store.updateTripState, undefined);
+  assert.equal(typeof store.saveTripUpdate, "function");
+  assert.equal(typeof store.updateEntry, "function");
+  assert.equal(typeof store.deleteEntry, "function");
 });

@@ -121,7 +121,6 @@ button {
 
 .primary-action,
 .secondary-action,
-.phase-buttons button,
 .map-button {
   display: inline-flex;
   align-items: center;
@@ -150,7 +149,6 @@ button {
 }
 
 .secondary-action:hover,
-.phase-buttons button:hover,
 .map-button:hover {
   border-color: rgba(109, 244, 212, 0.55);
 }
@@ -168,10 +166,6 @@ button {
 
 .full {
   width: 100%;
-}
-
-.log-form + .secondary-action.full {
-  margin-top: 12px;
 }
 
 .hero {
@@ -270,7 +264,6 @@ h1 {
 .seafloor-panel,
 .condition-card,
 .windy-panel,
-.tracker-card,
 .log-panel,
 .timeline-panel,
 .crew-card,
@@ -926,18 +919,6 @@ small {
   line-height: 1.5;
 }
 
-.eta-readout {
-  margin: 10px 0 0;
-  padding: 10px 12px;
-  border: 1px solid rgba(109, 244, 212, 0.28);
-  border-radius: var(--radius);
-  background: rgba(109, 244, 212, 0.08);
-  color: var(--seafoam);
-  font-size: 0.92rem;
-  font-weight: 600;
-  line-height: 1.4;
-}
-
 .crew-tally {
   margin-top: 12px;
   padding: 16px;
@@ -1116,36 +1097,9 @@ small {
   padding: 58px 0 22px;
 }
 
-.tracker-card,
 .log-panel,
 .timeline-panel {
   padding: 22px;
-}
-
-.phase-display {
-  padding: 20px;
-  border-radius: var(--radius);
-  background: linear-gradient(135deg, rgba(109, 244, 212, 0.14), rgba(108, 188, 255, 0.1));
-}
-
-.phase-display strong {
-  display: block;
-  margin-top: 6px;
-  font-family: "Space Grotesk", Inter, sans-serif;
-  font-size: 1.8rem;
-  line-height: 1.04;
-}
-
-.phase-buttons {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 16px;
-}
-
-.phase-buttons button {
-  min-height: 46px;
-  padding: 0 12px;
 }
 
 .species-section,
@@ -1595,7 +1549,6 @@ option {
   .seafloor-panel,
   .condition-card,
   .windy-panel,
-  .tracker-card,
   .log-panel,
   .timeline-panel,
   .crew-card,
@@ -1606,11 +1559,10 @@ option {
 
   .timer-grid,
   .mission-stats,
-    .current-trip-summary,
-    .log-form,
-    .catch-details,
-    .panel-topline,
-  .phase-buttons,
+  .current-trip-summary,
+  .log-form,
+  .catch-details,
+  .panel-topline,
   .crew-grid,
   .recap-grid,
   .live-grid,

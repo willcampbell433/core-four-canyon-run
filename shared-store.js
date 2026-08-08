@@ -185,26 +185,6 @@ export function createSharedStore({
     return snapshot;
   }
 
-  async function addEntry(entry) {
-    const row = {
-      id: entry.id || uuid(),
-      trip_id: snapshot.trip?.id || "fabe5000-0000-4000-8000-000000000001",
-      time_label: entry.time_label,
-      entry_type: entry.entry_type,
-      method: entry.method,
-      angler: entry.angler || null,
-      moment: entry.moment,
-      created_at: entry.created_at || now(),
-      updated_at: entry.updated_at || now(),
-    };
-    snapshot.entries = sortEntries([...snapshot.entries, { ...row, _pending: Boolean(client) }]);
-    if (client) enqueue({ kind: "create-entry", row });
-    cacheSnapshot();
-    emit();
-    await replayQueue();
-    return row;
-  }
-
   async function updateEntry(id, patch) {
     const existing = snapshot.entries.find((entry) => entry.id === id);
     if (!existing) return;
@@ -222,16 +202,6 @@ export function createSharedStore({
   async function deleteEntry(id) {
     snapshot.entries = snapshot.entries.filter((entry) => entry.id !== id);
     if (client) enqueue({ kind: "delete-entry", id });
-    cacheSnapshot();
-    emit();
-    await replayQueue();
-  }
-
-  async function updateTripState(patch) {
-    const row = { ...snapshot.tripState, ...patch, updated_at: now() };
-    delete row._pending;
-    snapshot.tripState = { ...row, _pending: Boolean(client) };
-    if (client) enqueue({ kind: "update-state", row });
     cacheSnapshot();
     emit();
     await replayQueue();
@@ -284,10 +254,8 @@ export function createSharedStore({
       listener(snapshot);
       return () => listeners.delete(listener);
     },
-    addEntry,
     updateEntry,
     deleteEntry,
-    updateTripState,
     saveTripUpdate,
     replayQueue,
     destroy() {

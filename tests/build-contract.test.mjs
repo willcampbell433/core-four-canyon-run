@@ -17,6 +17,11 @@ test("build runs tests before generating a static dist", async () => {
   assert.match(pkg.scripts.build, /generate-shared-config\.mjs/);
   assert.equal(vercel.buildCommand, "npm run build");
   assert.equal(vercel.outputDirectory, "dist");
+  assert.notEqual(
+    vercel.cleanUrls,
+    true,
+    "cleanUrls breaks root and directory index routing for the prebuilt static output",
+  );
 });
 
 test("generator writes only browser-safe public Supabase configuration", async () => {

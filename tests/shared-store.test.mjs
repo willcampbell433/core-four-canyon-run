@@ -47,6 +47,29 @@ test("missing client starts in local-only mode with seeds", async () => {
   assert.deepEqual(store.getSnapshot().entries, serverSnapshot.entries);
 });
 
+test("local-only edits persist without creating an unreplayable queue", async () => {
+  const storage = memoryStorage();
+  const store = createSharedStore({
+    client: null,
+    storage,
+    seeds: serverSnapshot.entries,
+    uuid: () => "local-entry",
+  });
+  await store.start();
+
+  await store.addEntry({
+    time_label: "7:30 AM",
+    entry_type: "Quote",
+    method: "Other",
+    moment: "Local fallback still works",
+  });
+
+  assert.equal(store.getSnapshot().syncState, "local-only");
+  assert.equal(store.getSnapshot().queuedCount, 0);
+  assert.equal(storage.read("ofishal-business-shared-queue-v1"), null);
+  assert.match(storage.read("ofishal-business-shared-cache-v1"), /Local fallback still works/);
+});
+
 test("cached snapshot renders before server load and is replaced", async () => {
   let resolveLoad;
   const cached = { ...serverSnapshot, entries: [{ ...serverSnapshot.entries[0], id: "cached" }] };
@@ -104,6 +127,29 @@ test("offline create is durable and replays once with its client UUID", async ()
   assert.equal(mutations.length, 1);
   assert.equal(mutations[0].row.id, "entry-offline");
   assert.equal(store.getSnapshot().syncState, "synced");
+});
+
+test("provided deterministic import UUID is preserved", async () => {
+  const mutations = [];
+  const store = createSharedStore({
+    client: {
+      load: async () => serverSnapshot,
+      subscribe: () => () => {},
+      mutate: async (mutation) => mutations.push(mutation),
+    },
+    storage: memoryStorage(),
+  });
+  await store.start();
+
+  await store.addEntry({
+    id: "11111111-1111-4111-8111-111111111111",
+    time_label: "Imported",
+    entry_type: "Quote",
+    method: "Other",
+    moment: "Publish once",
+  });
+
+  assert.equal(mutations[0].row.id, "11111111-1111-4111-8111-111111111111");
 });
 
 test("queued create update delete replay in original order", async () => {

@@ -160,7 +160,7 @@ export function createSharedStore({
 
   async function addEntry(entry) {
     const row = {
-      id: uuid(),
+      id: entry.id || uuid(),
       trip_id: snapshot.trip?.id || "fabe5000-0000-4000-8000-000000000001",
       time_label: entry.time_label,
       entry_type: entry.entry_type,
@@ -170,8 +170,8 @@ export function createSharedStore({
       created_at: entry.created_at || now(),
       updated_at: entry.updated_at || now(),
     };
-    snapshot.entries = sortEntries([...snapshot.entries, { ...row, _pending: true }]);
-    enqueue({ kind: "create-entry", row });
+    snapshot.entries = sortEntries([...snapshot.entries, { ...row, _pending: Boolean(client) }]);
+    if (client) enqueue({ kind: "create-entry", row });
     cacheSnapshot();
     emit();
     await replayQueue();
@@ -184,9 +184,9 @@ export function createSharedStore({
     const row = { ...existing, ...patch, id, updated_at: now() };
     delete row._pending;
     snapshot.entries = snapshot.entries.map((entry) =>
-      entry.id === id ? { ...row, _pending: true } : entry,
+      entry.id === id ? { ...row, _pending: Boolean(client) } : entry,
     );
-    enqueue({ kind: "update-entry", row });
+    if (client) enqueue({ kind: "update-entry", row });
     cacheSnapshot();
     emit();
     await replayQueue();
@@ -194,7 +194,7 @@ export function createSharedStore({
 
   async function deleteEntry(id) {
     snapshot.entries = snapshot.entries.filter((entry) => entry.id !== id);
-    enqueue({ kind: "delete-entry", id });
+    if (client) enqueue({ kind: "delete-entry", id });
     cacheSnapshot();
     emit();
     await replayQueue();
@@ -203,8 +203,8 @@ export function createSharedStore({
   async function updateTripState(patch) {
     const row = { ...snapshot.tripState, ...patch, updated_at: now() };
     delete row._pending;
-    snapshot.tripState = { ...row, _pending: true };
-    enqueue({ kind: "update-state", row });
+    snapshot.tripState = { ...row, _pending: Boolean(client) };
+    if (client) enqueue({ kind: "update-state", row });
     cacheSnapshot();
     emit();
     await replayQueue();

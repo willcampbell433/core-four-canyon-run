@@ -15,11 +15,11 @@ const points = {
     label: "Jordan Road bridge",
     note: "Target the 5:30 AM opening. Captain and bridge tender control the actual transit.",
   },
-  inlet: {
-    lat: 39.7617,
-    lon: -74.1117,
-    label: "Barnegat Inlet",
-    note: "Transit point only. Confirm tide, visibility, traffic, and inlet conditions onboard.",
+  manasquanInlet: {
+    lat: 40.1017,
+    lon: -74.035,
+    label: "Manasquan Inlet",
+    note: "Planned ocean exit. Confirm the bridge, tide, visibility, traffic, and inlet conditions onboard.",
   },
   ridgeSouth: {
     lat: 39.646433,
@@ -44,7 +44,7 @@ const points = {
 const route = [
   points.manorside,
   points.jordanRoad,
-  points.inlet,
+  points.manasquanInlet,
   points.ridgeSouth,
   points.ridgeNorth,
   points.seasideLumps,
@@ -90,7 +90,7 @@ const seedEntries = [
     time: "Aug 8, 5:30 AM",
     type: "Plan",
     method: "Running",
-    moment: "Target the Jordan Road bridge opening, then run south through the bay toward Barnegat Inlet.",
+    moment: "Target the Jordan Road bridge opening, then head for Manasquan Inlet and clear the inlet before turning toward the grounds.",
   },
   {
     time: "Aug 8, fishing plan",
@@ -106,13 +106,15 @@ const seedEntries = [
   },
 ];
 
-const removedSeedMoments = new Set();
+const removedSeedMoments = new Set([
+  "Target the Jordan Road bridge opening, then run south through the bay toward Barnegat Inlet.",
+]);
 
 const tideFallback = [
-  { t: "2026-08-08 03:55", type: "H" },
-  { t: "2026-08-08 10:02", type: "L" },
-  { t: "2026-08-08 16:26", type: "H" },
-  { t: "2026-08-08 23:23", type: "L" },
+  { t: "2026-08-08 03:43", type: "H" },
+  { t: "2026-08-08 09:49", type: "L" },
+  { t: "2026-08-08 16:15", type: "H" },
+  { t: "2026-08-08 23:01", type: "L" },
 ];
 
 const els = {
@@ -365,6 +367,7 @@ function initMap() {
   route.forEach((p, i) => {
     const isEnd = i === 0 || i === route.length - 1;
     const isDestination = i === route.length - 1;
+    const isInlet = p === points.manasquanInlet;
     const marker = L.circleMarker([p.lat, p.lon], {
       radius: isEnd ? 10 : 7,
       color: "#04111d",
@@ -376,6 +379,8 @@ function initMap() {
       .bindPopup(`<strong>${p.label}</strong><br>${p.note}`);
     if (isDestination) {
       marker.bindTooltip("Seaside Lumps", { permanent: true, direction: "right", offset: [12, 0] });
+    } else if (isInlet) {
+      marker.bindTooltip("Manasquan Inlet", { permanent: true, direction: "right", offset: [10, 0] });
     }
   });
 
@@ -758,7 +763,7 @@ function renderTides(predictions) {
 
 async function refreshTides() {
   const url =
-    "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=fab-five-trip-board&begin_date=20260808&end_date=20260808&datum=MLLW&station=8533615&time_zone=lst_ldt&units=english&interval=hilo&format=json";
+    "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=fab-five-trip-board&begin_date=20260808&end_date=20260808&datum=MLLW&station=8532591&time_zone=lst_ldt&units=english&interval=hilo&format=json";
   try {
     const response = await fetchWithTimeout(url, {}, 8000);
     if (!response.ok) throw new Error("NOAA tide request failed");

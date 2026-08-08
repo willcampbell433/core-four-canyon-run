@@ -14,6 +14,7 @@ function loadLocationTracker(app, { hasGeolocation = true } = {}) {
   let success;
   let failure;
   let clearedWatchId = null;
+  let distanceTarget = null;
   const trailPoints = [];
   const els = {
     locateButton: {
@@ -38,6 +39,10 @@ function loadLocationTracker(app, { hasGeolocation = true } = {}) {
     },
     remove() {},
   });
+  const points = {
+    ridgeSouth: { lat: 39.646433, lon: -73.783583, label: "Barnegat Ridge South" },
+    seasideLumps: { lat: 39.9169, lon: -73.9008, label: "Seaside Lumps" },
+  };
   const context = {
     els,
     L: {
@@ -66,9 +71,13 @@ function loadLocationTracker(app, { hasGeolocation = true } = {}) {
           },
         }
       : {},
-    points: { seasideLumps: { lat: 39.9169, lon: -73.9008 } },
+    points,
+    trackerDestination: points.ridgeSouth,
     compass: () => "NE",
-    nmBetween: () => 10,
+    nmBetween: (_position, target) => {
+      distanceTarget = target;
+      return 10;
+    },
     updateEta: (remainingNm, speed) => {
       els.etaReadout.textContent = `${remainingNm.toFixed(1)} nm | ${speed.toFixed(1)} m/s`;
     },
@@ -86,7 +95,22 @@ function loadLocationTracker(app, { hasGeolocation = true } = {}) {
     fail: (error) => failure(error),
     trailPoints,
     getClearedWatchId: () => clearedWatchId,
+    getDistanceTarget: () => distanceTarget,
   };
+}
+
+function renderTrackerEta(app, remainingNm) {
+  const start = app.indexOf("function updateEta");
+  const end = app.indexOf("function setLocationState");
+  assert.ok(start >= 0 && end > start, "tracker ETA logic should be extractable");
+
+  const els = { etaReadout: { textContent: "" } };
+  const trackerDestination = { label: "Barnegat Ridge South" };
+  runInNewContext(`${app.slice(start, end)}\nupdateEta(${remainingNm}, null);`, {
+    els,
+    trackerDestination,
+  });
+  return els.etaReadout.textContent;
 }
 
 function renderTripClockAt(app, nowIso) {
@@ -141,17 +165,19 @@ test("underway trip clock counts elapsed time since departure", async () => {
 
 test("active route lists the confirmed grounds in order", async () => {
   const app = await read("app.js");
-  const south = app.indexOf("points.ridgeSouth");
-  const north = app.indexOf("points.ridgeNorth");
-  const lumps = app.indexOf("points.seasideLumps");
+  const route = app.slice(app.indexOf("const route"), app.indexOf("const crew"));
+  const south = route.indexOf("points.ridgeSouth");
+  const north = route.indexOf("points.ridgeNorth");
+  const lumps = route.indexOf("points.seasideLumps");
   assert.ok(south >= 0 && south < north && north < lumps);
 });
 
 test("active route exits through Manasquan Inlet before the fishing grounds", async () => {
   const app = await read("app.js");
-  const bridge = app.indexOf("points.jordanRoad");
-  const inlet = app.indexOf("points.manasquanInlet");
-  const south = app.indexOf("points.ridgeSouth");
+  const route = app.slice(app.indexOf("const route"), app.indexOf("const crew"));
+  const bridge = route.indexOf("points.jordanRoad");
+  const inlet = route.indexOf("points.manasquanInlet");
+  const south = route.indexOf("points.ridgeSouth");
 
   assert.ok(bridge >= 0 && bridge < inlet && inlet < south);
   assert.match(app, /label: "Manasquan Inlet"/);
@@ -275,6 +301,20 @@ test("live GPS exposes connecting, live, and paused states", async () => {
   tracker.click();
   assert.equal(tracker.els.locationState.textContent, "PAUSED");
   assert.equal(tracker.getClearedWatchId(), 7);
+});
+
+test("live GPS targets Barnegat Ridge South as the next destination", async () => {
+  const app = await read("app.js");
+  const tracker = loadLocationTracker(app);
+
+  tracker.click();
+  tracker.succeed({
+    coords: { latitude: 40.05, longitude: -74.02, accuracy: 10, speed: 6.2, heading: null },
+  });
+
+  assert.equal(tracker.getDistanceTarget().lat, 39.646433);
+  assert.equal(tracker.getDistanceTarget().lon, -73.783583);
+  assert.equal(renderTrackerEta(app, 10), "10.0 nm to Barnegat Ridge South");
 });
 
 test("live GPS explains permission and browser failures", async () => {

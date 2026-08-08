@@ -41,6 +41,8 @@ const points = {
   },
 };
 
+const trackerDestination = points.ridgeSouth;
+
 const route = [
   points.manorside,
   points.jordanRoad,
@@ -304,7 +306,7 @@ function nmBetween(a, b) {
 function updateEta(remainingNm, speedMs) {
   if (!els.etaReadout) return;
   if (remainingNm < 1) {
-    els.etaReadout.textContent = "At Seaside Lumps - follow the captain's call.";
+    els.etaReadout.textContent = `At ${trackerDestination.label} - follow the captain's call.`;
     return;
   }
   const kt = Number.isFinite(speedMs) && speedMs !== null ? speedMs * 1.94384 : null;
@@ -317,7 +319,7 @@ function updateEta(remainingNm, speedMs) {
     const clock = eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
     etaText = ` | ${h}h ${String(m).padStart(2, "0")}m out, ETA ${clock}`;
   }
-  els.etaReadout.textContent = `${remainingNm.toFixed(1)} nm to Seaside Lumps${etaText}`;
+  els.etaReadout.textContent = `${remainingNm.toFixed(1)} nm to ${trackerDestination.label}${etaText}`;
 }
 
 function setLocationState(state, message) {
@@ -475,7 +477,7 @@ function initLocationPin(map, routeLatLngs) {
     }
     setLocationState("LIVE", "Position is updating on the route chart above.");
 
-    updateEta(nmBetween({ lat: latitude, lon: longitude }, points.seasideLumps), speed);
+    updateEta(nmBetween({ lat: latitude, lon: longitude }, trackerDestination), speed);
     locationMarker.bindPopup(
       `<strong>Ofishal Business</strong><br>${latitude.toFixed(4)}, ${longitude.toFixed(4)}<br>GPS accuracy: ~${Math.round(accuracy)} m`,
     );

@@ -1,0 +1,7 @@
+dist/
+shared-config.js
+.env
+.env.*
+!.env.example
+.vercel/
+.supabase/

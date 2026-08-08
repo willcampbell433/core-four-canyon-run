@@ -37,7 +37,13 @@ const points = {
     lat: 39.9169,
     lon: -73.900767,
     label: "Seaside Lumps",
-    note: "Final planned ground. Stay mobile and follow bluefish, squid, birds, whales, and tuna marks.",
+    note: "Third fishing stop. Stay mobile and follow bluefish, squid, birds, whales, and tuna marks.",
+  },
+  monsterLedge: {
+    lat: 40.101533,
+    lon: -73.5505,
+    label: "Monster Ledge",
+    note: "Current next stop, northeast of Manasquan Inlet. Work the ledge and nearby pot line for tuna, sharks, and mahi.",
   },
 };
 
@@ -50,6 +56,7 @@ const route = [
   points.ridgeSouth,
   points.ridgeNorth,
   points.seasideLumps,
+  points.monsterLedge,
 ];
 
 const crew = ["John", "Bill", "Pete", "Phil", "Will"];
@@ -96,7 +103,7 @@ const seedEntries = [
     time: "Aug 8, fishing plan",
     type: "Plan",
     method: "Other",
-    moment: "Work Barnegat Ridge South, slide to Ridge North, then finish at Seaside Lumps. Life and onboard marks beat the itinerary.",
+    moment: "Work Barnegat Ridge South, slide to Ridge North and Seaside Lumps, then continue to Monster Ledge. Life and onboard marks beat the itinerary.",
   },
   {
     time: "Aug 8, before lines in",
@@ -395,7 +402,7 @@ function initMap() {
       .addTo(map)
       .bindPopup(`<strong>${p.label}</strong><br>${p.note}`);
     if (isDestination) {
-      marker.bindTooltip("Seaside Lumps", { permanent: true, direction: "right", offset: [12, 0] });
+      marker.bindTooltip(p.label, { permanent: true, direction: "right", offset: [12, 0] });
     } else if (isInlet) {
       marker.bindTooltip("Manasquan Inlet", { permanent: true, direction: "right", offset: [10, 0] });
     }

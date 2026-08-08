@@ -172,6 +172,19 @@ test("active route lists the confirmed grounds in order", async () => {
   assert.ok(south >= 0 && south < north && north < lumps);
 });
 
+test("active route continues from Seaside Lumps to Monster Ledge", async () => {
+  const [html, app, styles] = await Promise.all([read("index.html"), read("app.js"), read("styles.css")]);
+  const route = app.slice(app.indexOf("const route"), app.indexOf("const crew"));
+  const lumps = route.indexOf("points.seasideLumps");
+  const monster = route.indexOf("points.monsterLedge");
+
+  assert.ok(lumps >= 0 && lumps < monster);
+  assert.match(app, /monsterLedge:\s*{[\s\S]*?lat: 40\.101533,[\s\S]*?lon: -73\.5505,[\s\S]*?label: "Monster Ledge"/);
+  assert.match(app, /marker\.bindTooltip\(p\.label,/);
+  assert.match(html, /Seaside Lumps\s*→\s*Monster Ledge/);
+  assert.match(styles, /\.spot-grid\s*{[\s\S]*?grid-template-columns:\s*repeat\(4, 1fr\)/);
+});
+
 test("active route exits through Manasquan Inlet before the fishing grounds", async () => {
   const app = await read("app.js");
   const route = app.slice(app.indexOf("const route"), app.indexOf("const crew"));

@@ -41,7 +41,7 @@ const points = {
   },
 };
 
-const trackerDestination = points.ridgeSouth;
+let trackerDestination = points.ridgeSouth;
 
 const route = [
   points.manorside,
@@ -145,6 +145,12 @@ const els = {
   speedCourseReadout: document.querySelector("#speedCourseReadout"),
   etaReadout: document.querySelector("#etaReadout"),
   crewTally: document.querySelector("#crewTally"),
+  tripStatusControl: document.querySelector("#tripStatusControl"),
+  destinationControl: document.querySelector("#destinationControl"),
+  returnNoteControl: document.querySelector("#returnNoteControl"),
+  syncState: document.querySelector("#syncState"),
+  syncError: document.querySelector("#syncError"),
+  publishLocalButton: document.querySelector("#publishLocalButton"),
   buoyHead: document.querySelector("#buoyHead"),
   buoyMetrics: document.querySelector("#buoyMetrics"),
   buoyNote: document.querySelector("#buoyNote"),
@@ -155,6 +161,21 @@ const els = {
   sunMoonList: document.querySelector("#sunMoonList"),
   galleryGrid: document.querySelector("#galleryGrid"),
 };
+
+let sharedStore = null;
+let sharedEntries = null;
+
+function entryTime(entry) {
+  return entry.time_label ?? entry.time ?? "Update";
+}
+
+function entryType(entry) {
+  return entry.entry_type ?? entry.type ?? "Boat life";
+}
+
+function activeEntries() {
+  return sharedEntries || readEntries();
+}
 
 function escapeHtml(value) {
   return String(value)
@@ -213,14 +234,14 @@ function writeEntries(entries) {
 function formatBoardLogExport(entries) {
   const lines = entries.map((entry) => {
     const angler = entry.angler ? ` / ${entry.angler}` : "";
-    return `- ${entry.time}: ${entry.moment} (${entry.type} / ${entry.method}${angler})`;
+    return `- ${entryTime(entry)}: ${entry.moment} (${entryType(entry)} / ${entry.method}${angler})`;
   });
   return `The Fab Five | Aug 8, 2026 board log\n\n${lines.join("\n")}\n\nRaw JSON:\n${JSON.stringify(entries, null, 2)}`;
 }
 
 async function copyBoardLog() {
   if (!els.copyLogButton) return;
-  const entries = readEntries();
+  const entries = activeEntries();
   const text = formatBoardLogExport(entries);
   try {
     await navigator.clipboard.writeText(text);
@@ -249,25 +270,25 @@ function touchLastUpdate() {
   });
 }
 
-function renderTimeline() {
-  const entries = readEntries();
+function renderTimeline(entries = activeEntries()) {
   els.timeline.innerHTML = entries
     .slice()
     .reverse()
     .map(
       (entry) => `
-        <li>
-          <time>${escapeHtml(entry.time)}</time>
+        <li${entry._pending ? ' class="pending"' : ""}>
+          <time>${escapeHtml(entryTime(entry))}</time>
           <div>
             <strong>${escapeHtml(entry.moment)}</strong>
-            <span>${escapeHtml(entry.type)} / ${escapeHtml(entry.method)}${entry.angler ? ` / ${escapeHtml(entry.angler)}` : ""}</span>
+            <span>${escapeHtml(entryType(entry))} / ${escapeHtml(entry.method)}${entry.angler ? ` / ${escapeHtml(entry.angler)}` : ""}</span>
+            ${entry.id ? `<div class="entry-actions"><button type="button" data-entry-edit="${escapeHtml(entry.id)}">Edit</button><button type="button" data-entry-delete="${escapeHtml(entry.id)}">Delete</button></div>` : ""}
           </div>
         </li>
       `,
     )
     .join("");
 
-  const catchCount = entries.filter((entry) => /tuna|mahi/i.test(entry.type)).length;
+  const catchCount = entries.filter((entry) => /tuna|mahi/i.test(entryType(entry))).length;
   els.catchCount.textContent = String(catchCount);
   els.replacementGrade.textContent = catchCount > 0 ? "Fish on board" : "Lines not in yet";
   renderTally(entries);
@@ -277,7 +298,7 @@ function renderTally(entries) {
   if (!els.crewTally) return;
   const counts = Object.fromEntries(crew.map((name) => [name, 0]));
   entries.forEach((entry) => {
-    if (/tuna|mahi/i.test(entry.type) && entry.angler && counts[entry.angler] !== undefined) {
+    if (/tuna|mahi/i.test(entryType(entry)) && entry.angler && counts[entry.angler] !== undefined) {
       counts[entry.angler] += 1;
     }
   });
@@ -800,29 +821,199 @@ async function refreshTides() {
   }
 }
 
+async function createSharedClient() {
+  const config = window.OFISHAL_SHARED_CONFIG || {};
+  if (!config.url || !config.publishableKey) return null;
+
+  const { createClient } = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+  const supabase = createClient(config.url, config.publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+
+  function unwrap(result) {
+    if (result.error) throw result.error;
+    return result.data;
+  }
+
+  return {
+    async load(slug) {
+      const trip = unwrap(await supabase.from("trips").select("*").eq("slug", slug).single());
+      const [stateResult, entriesResult] = await Promise.all([
+        supabase.from("trip_state").select("*").eq("trip_id", trip.id).single(),
+        supabase.from("trip_log_entries").select("*").eq("trip_id", trip.id).order("created_at"),
+      ]);
+      return {
+        trip,
+        tripState: unwrap(stateResult),
+        entries: unwrap(entriesResult),
+      };
+    },
+    async mutate(mutation) {
+      if (mutation.kind === "create-entry") {
+        unwrap(await supabase.from("trip_log_entries").upsert(mutation.row, { onConflict: "id" }));
+      } else if (mutation.kind === "update-entry") {
+        unwrap(await supabase.from("trip_log_entries").update(mutation.row).eq("id", mutation.row.id));
+      } else if (mutation.kind === "delete-entry") {
+        unwrap(await supabase.from("trip_log_entries").delete().eq("id", mutation.id));
+      } else if (mutation.kind === "update-state") {
+        unwrap(await supabase.from("trip_state").upsert(mutation.row, { onConflict: "trip_id" }));
+      }
+    },
+    subscribe(handler) {
+      const channel = supabase
+        .channel("ofishal-business-board")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "trip_state" },
+          (payload) => handler({ table: "trip_state", ...payload }),
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "trip_log_entries" },
+          (payload) => handler({ table: "trip_log_entries", ...payload }),
+        )
+        .subscribe();
+      return () => supabase.removeChannel(channel);
+    },
+  };
+}
+
+function stableEntryUuid(entry, index) {
+  const source = `${entry.time}|${entry.type}|${entry.method}|${entry.angler || ""}|${entry.moment}|${index}`;
+  let first = 2166136261;
+  let second = 2246822519;
+  for (const char of source) {
+    first = Math.imul(first ^ char.charCodeAt(0), 16777619) >>> 0;
+    second = Math.imul(second ^ char.charCodeAt(0), 3266489917) >>> 0;
+  }
+  const hex = `${first.toString(16).padStart(8, "0")}${second.toString(16).padStart(8, "0")}fab5000000000000`;
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-8${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+}
+
+function legacyEntryToShared(entry, index) {
+  return {
+    id: stableEntryUuid(entry, index),
+    trip_id: "fabe5000-0000-4000-8000-000000000001",
+    time_label: entry.time,
+    entry_type: entry.type,
+    method: entry.method,
+    angler: entry.angler || null,
+    moment: entry.moment,
+    created_at: new Date(departure.getTime() + index * 60000).toISOString(),
+    updated_at: new Date(departure.getTime() + index * 60000).toISOString(),
+  };
+}
+
+function renderSharedSnapshot(snapshot) {
+  sharedEntries = snapshot.entries;
+  renderTimeline(snapshot.entries);
+  touchLastUpdate();
+
+  const state = snapshot.tripState;
+  if (state) {
+    if (document.activeElement !== els.tripStatusControl) els.tripStatusControl.value = state.status;
+    if (document.activeElement !== els.destinationControl) els.destinationControl.value = state.active_destination;
+    if (document.activeElement !== els.returnNoteControl) els.returnNoteControl.value = state.return_note;
+    trackerDestination = Object.values(points).find((point) => point.label === state.active_destination) || points.ridgeSouth;
+  }
+
+  const labels = {
+    synced: "Synced",
+    pending: "Pending",
+    offline: "Offline",
+    "local-only": "Local only",
+  };
+  els.syncState.textContent = labels[snapshot.syncState] || "Pending";
+  els.syncState.dataset.state = snapshot.syncState;
+  els.syncError.hidden = !snapshot.error;
+  els.syncError.textContent = snapshot.error || "";
+}
+
+async function setupSharedBoard() {
+  const [{ createSharedStore }, client] = await Promise.all([
+    import("./shared-store.js"),
+    createSharedClient(),
+  ]);
+  const localEntries = readEntries();
+  const sharedSeeds = localEntries.map(legacyEntryToShared);
+  sharedStore = createSharedStore({ client, seeds: sharedSeeds });
+  sharedStore.subscribe(renderSharedSnapshot);
+  await sharedStore.start();
+
+  const hostedMoments = new Set(seedEntries.map((entry) => entry.moment));
+  const publishable = localEntries.filter((entry) => !hostedMoments.has(entry.moment));
+  if (client && publishable.length) {
+    els.publishLocalButton.hidden = false;
+    els.publishLocalButton.addEventListener("click", async () => {
+      for (const [index, entry] of publishable.entries()) {
+        const row = legacyEntryToShared(entry, index + seedEntries.length);
+        await sharedStore.addEntry(row);
+      }
+      els.publishLocalButton.hidden = true;
+    }, { once: true });
+  }
+  window.addEventListener("online", () => sharedStore.replayQueue());
+}
+
 /* ---------- Wire up ---------- */
 
-els.form.addEventListener("submit", (event) => {
+els.form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(els.form);
   const now = new Date();
   const entry = {
-    time: now.toLocaleString([], {
+    time_label: now.toLocaleString([], {
       month: "short",
       day: "numeric",
       hour: "numeric",
       minute: "2-digit",
     }),
     moment: formData.get("moment"),
-    type: formData.get("type"),
+    entry_type: formData.get("type"),
     method: formData.get("method"),
-    angler: formData.get("angler") || "",
+    angler: formData.get("angler") || null,
   };
-  writeEntries([...readEntries(), entry]);
+  if (sharedStore) {
+    await sharedStore.addEntry(entry);
+  } else {
+    writeEntries([...readEntries(), {
+      time: entry.time_label,
+      type: entry.entry_type,
+      method: entry.method,
+      angler: entry.angler || "",
+      moment: entry.moment,
+    }]);
+    renderTimeline();
+  }
   els.form.reset();
   touchLastUpdate();
-  renderTimeline();
 });
+
+els.timeline.addEventListener("click", async (event) => {
+  const editButton = event.target.closest("[data-entry-edit]");
+  const deleteButton = event.target.closest("[data-entry-delete]");
+  if (!sharedStore || (!editButton && !deleteButton)) return;
+
+  if (editButton) {
+    const id = editButton.dataset.entryEdit;
+    const entry = activeEntries().find((candidate) => candidate.id === id);
+    const moment = prompt("Edit this board-log moment", entry?.moment || "");
+    if (moment && moment.trim()) await sharedStore.updateEntry(id, { moment: moment.trim() });
+  }
+
+  if (deleteButton) {
+    const id = deleteButton.dataset.entryDelete;
+    if (confirm("Delete this shared board-log entry?")) await sharedStore.deleteEntry(id);
+  }
+});
+
+for (const [element, field] of [
+  [els.tripStatusControl, "status"],
+  [els.destinationControl, "active_destination"],
+  [els.returnNoteControl, "return_note"],
+]) {
+  element.addEventListener("change", () => sharedStore?.updateTripState({ [field]: element.value.trim() }));
+}
 
 if (els.copyLogButton) {
   els.copyLogButton.addEventListener("click", copyBoardLog);
@@ -841,6 +1032,7 @@ function runStartupTask(name, task) {
 
 runStartupTask("timer", renderTimer);
 runStartupTask("timeline", renderTimeline);
+runStartupTask("shared board", setupSharedBoard);
 runStartupTask("weather", refreshWeather);
 runStartupTask("buoy", refreshBuoy);
 runStartupTask("tides", refreshTides);

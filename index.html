@@ -113,6 +113,40 @@
               <strong>Late afternoon, exact time TBD</strong>
             </div>
           </div>
+          <div class="shared-controls" aria-label="Shared trip controls">
+            <div class="shared-controls-heading">
+              <div>
+                <small>Shared board</small>
+                <strong>Anyone with this link can update it</strong>
+              </div>
+              <span class="sync-state" id="syncState" data-state="pending" aria-live="polite">Pending</span>
+            </div>
+            <label>
+              Status
+              <select id="tripStatusControl">
+                <option value="pre-departure">Pre-departure</option>
+                <option value="underway" selected>Underway</option>
+                <option value="fishing">Fishing</option>
+                <option value="heading-home">Heading home</option>
+                <option value="recap">Recap</option>
+              </select>
+            </label>
+            <label>
+              Active destination
+              <select id="destinationControl">
+                <option>Manasquan Inlet</option>
+                <option selected>Barnegat Ridge South</option>
+                <option>Barnegat Ridge North</option>
+                <option>Seaside Lumps</option>
+                <option>Home</option>
+              </select>
+            </label>
+            <label class="return-note-control">
+              Return note
+              <input id="returnNoteControl" maxlength="160" value="Late afternoon, exact time TBD" />
+            </label>
+            <p class="sync-error" id="syncError" hidden></p>
+          </div>
           <div class="boat-strip">
             <span class="boat-icon" aria-hidden="true"></span>
             <div>
@@ -499,12 +533,13 @@
                 <option>Will</option>
               </select>
             </label>
-            <button class="primary-action full" type="submit">Add locally</button>
+            <button class="primary-action full" type="submit">Add to shared log</button>
           </form>
+          <button class="secondary-action full" id="publishLocalButton" type="button" hidden>Publish my local entries</button>
           <button class="secondary-action full" id="copyLogButton" type="button">Copy board log</button>
           <p class="official-log-note">
-            Official fish catches go on John's Waterpoof app first. Copy this board log and send it
-            to Larry to make it public here.
+            Official fish catches go on John's Waterpoof app first. This board is public and collaborative,
+            so anyone with the link can add, edit, or delete entries.
           </p>
         </div>
 
@@ -615,6 +650,7 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
+    <script src="shared-config.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

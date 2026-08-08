@@ -351,6 +351,67 @@ small {
   font-size: 1rem;
 }
 
+.shared-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid rgba(109, 244, 212, 0.22);
+  border-radius: var(--radius);
+  background: rgba(109, 244, 212, 0.06);
+}
+
+.shared-controls-heading,
+.return-note-control,
+.sync-error {
+  grid-column: 1 / -1;
+}
+
+.shared-controls-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sync-state {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid rgba(242, 201, 76, 0.45);
+  border-radius: 999px;
+  color: #f2c94c;
+  background: rgba(242, 201, 76, 0.1);
+  font-size: 0.74rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.sync-state[data-state="synced"] {
+  border-color: rgba(109, 244, 212, 0.5);
+  color: var(--seafoam);
+  background: rgba(109, 244, 212, 0.1);
+}
+
+.sync-state[data-state="offline"] {
+  border-color: rgba(255, 141, 77, 0.55);
+  color: var(--orange);
+  background: rgba(255, 141, 77, 0.12);
+}
+
+.sync-state[data-state="local-only"] {
+  border-color: rgba(108, 188, 255, 0.45);
+  color: #9dcfff;
+  background: rgba(108, 188, 255, 0.1);
+}
+
+.sync-error {
+  margin: 0;
+  color: #ffb28a;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
 .official-log-note {
   margin: 16px 0 0;
   padding: 14px;
@@ -1278,6 +1339,31 @@ option {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.timeline li.pending {
+  border-color: rgba(242, 201, 76, 0.42);
+}
+
+.entry-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.entry-actions button {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  color: var(--text);
+  background: rgba(4, 16, 29, 0.6);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.entry-actions button:hover {
+  border-color: var(--seafoam);
+}
+
 .timeline time {
   color: var(--orange);
   font-size: 0.8rem;
@@ -1475,6 +1561,7 @@ option {
 
   .timer-grid,
   .mission-stats,
+  .shared-controls,
   .panel-topline,
   .phase-buttons,
   .crew-grid,

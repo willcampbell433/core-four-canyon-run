@@ -160,6 +160,32 @@ test("stored trip logs migrate away from the old Barnegat detour", async () => {
   assert.equal(writes.length, 1);
 });
 
+test("hosted 6:00 AM underway update appears for returning visitors", async () => {
+  const app = await read("app.js");
+  const setup = app.slice(0, app.indexOf("function formatBoardLogExport"));
+  const context = {
+    document: { querySelector: () => ({}) },
+    localStorage: {
+      getItem: () => "[]",
+      setItem: () => {},
+    },
+  };
+
+  runInNewContext(`${setup}\nglobalThis.readTripEntries = readEntries;`, context);
+  const entries = context.readTripEntries();
+
+  assert.equal(
+    entries.some(
+      (entry) =>
+        entry.time === "Aug 8, 6:00 AM" &&
+        entry.type === "Boat life" &&
+        entry.method === "Running" &&
+        entry.moment === "Reached Manasquan Inlet and started heading toward Barnegat Ridge South.",
+    ),
+    true,
+  );
+});
+
 test("July board remains a separate working archive", async () => {
   const [active, archivedHtml, archivedApp] = await Promise.all([
     read("index.html"),

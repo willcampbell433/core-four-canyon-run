@@ -104,6 +104,12 @@ const seedEntries = [
     method: "Other",
     moment: "Recheck NOAA bluefin status and marine forecast. Official catches go on John's Waterpoof app first; NOAA reporting follows any landed bluefin or dead discard.",
   },
+  {
+    time: "Aug 8, 6:00 AM",
+    type: "Boat life",
+    method: "Running",
+    moment: "Reached Manasquan Inlet and started heading toward Barnegat Ridge South.",
+  },
 ];
 
 const removedSeedMoments = new Set([

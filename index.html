@@ -158,6 +158,114 @@
         </div>
       </section>
 
+      <section class="tools-grid section-shell" id="log">
+        <div class="log-panel trip-update-panel">
+          <div class="trip-update-heading">
+            <div class="section-heading">
+              <span>Trip Log</span>
+              <h2>Add trip update</h2>
+            </div>
+            <span class="sync-state" id="syncState" data-state="pending" aria-live="polite">Pending</span>
+          </div>
+          <div class="current-trip-summary" role="group" aria-label="Current shared trip status">
+            <div>
+              <small>Status</small>
+              <strong id="currentTripStatus">Underway</strong>
+            </div>
+            <div>
+              <small>Destination</small>
+              <strong id="currentTripDestination">Barnegat Ridge South</strong>
+            </div>
+            <div class="current-trip-note">
+              <small>Latest note</small>
+              <strong id="currentTripNote">Late afternoon, exact time TBD</strong>
+            </div>
+          </div>
+          <p class="trip-update-help">One save updates the live trip and adds a timestamped entry to the Trip Log.</p>
+          <form id="tripUpdateForm" class="log-form" aria-label="Add trip update">
+            <label class="trip-update-text">
+              Update
+              <input id="tripUpdateInput" type="text" maxlength="160" placeholder="No fish after two hours at Ridge South" required />
+            </label>
+            <label>
+              Status
+              <select id="tripStatusControl">
+                <option value="pre-departure">Pre-departure</option>
+                <option value="underway" selected>Underway</option>
+                <option value="fishing">Fishing</option>
+                <option value="heading-home">Heading home</option>
+                <option value="recap">Recap</option>
+              </select>
+            </label>
+            <label>
+              Type
+              <select id="typeInput">
+                <option selected>Boat life</option>
+                <option>Tuna</option>
+                <option>Mahi mahi</option>
+                <option>Weather</option>
+                <option>Mark</option>
+                <option>Quote</option>
+              </select>
+            </label>
+            <div class="catch-details" id="catchDetails" hidden aria-hidden="true">
+              <label>
+                Method
+                <select id="methodInput">
+                  <option>Trolling</option>
+                  <option>Jigging</option>
+                  <option>Running</option>
+                  <option>Dockside</option>
+                  <option>Other</option>
+                </select>
+              </label>
+              <label>
+                Angler
+                <select id="anglerInput">
+                  <option value="">Crew</option>
+                  <option>John</option>
+                  <option>Bill</option>
+                  <option>Pete</option>
+                  <option>Phil</option>
+                  <option>Will</option>
+                </select>
+              </label>
+            </div>
+            <button class="primary-action full" id="saveTripUpdateButton" type="submit" disabled>Save to trip log</button>
+            <p class="sync-error" id="syncError" hidden></p>
+          </form>
+          <p class="official-log-note">
+            Official fish catches go on John's Waterpoof app first. This board is public and collaborative,
+            so anyone with the link can add, edit, or delete entries.
+          </p>
+        </div>
+
+        <div class="timeline-panel">
+          <div class="section-heading">
+            <span>Timeline</span>
+            <h2>Trip log</h2>
+          </div>
+          <div class="crew-tally" role="group" aria-label="Fish Box Standings">
+            <div class="leaderboard-header">
+              <small>John vs Bill vs Pete vs Phil vs Will</small>
+              <strong>Fish Box Face-Off</strong>
+            </div>
+            <ul class="tally-list" id="crewTally"></ul>
+          </div>
+          <div class="log-metrics">
+            <div>
+              <small>Catch count</small>
+              <strong id="catchCount">0</strong>
+            </div>
+            <div>
+              <small>Last update</small>
+              <strong id="lastUpdate">Stand by</strong>
+            </div>
+          </div>
+          <ol class="timeline" id="timelineList"></ol>
+        </div>
+      </section>
+
       <section class="boat-section section-shell" id="boat">
         <div class="section-heading wide">
           <span>The Vessel</span>
@@ -476,114 +584,6 @@
               <li><strong>Table:</strong> Fish tacos. Non-negotiable.</li>
             </ul>
           </article>
-        </div>
-      </section>
-
-      <section class="tools-grid section-shell" id="log">
-        <div class="log-panel trip-update-panel">
-          <div class="trip-update-heading">
-            <div class="section-heading">
-              <span>Trip Log</span>
-              <h2>Add trip update</h2>
-            </div>
-            <span class="sync-state" id="syncState" data-state="pending" aria-live="polite">Pending</span>
-          </div>
-          <div class="current-trip-summary" role="group" aria-label="Current shared trip status">
-            <div>
-              <small>Status</small>
-              <strong id="currentTripStatus">Underway</strong>
-            </div>
-            <div>
-              <small>Destination</small>
-              <strong id="currentTripDestination">Barnegat Ridge South</strong>
-            </div>
-            <div class="current-trip-note">
-              <small>Latest note</small>
-              <strong id="currentTripNote">Late afternoon, exact time TBD</strong>
-            </div>
-          </div>
-          <p class="trip-update-help">One save updates the live trip and adds a timestamped entry to the Trip Log.</p>
-          <form id="tripUpdateForm" class="log-form" aria-label="Add trip update">
-            <label class="trip-update-text">
-              Update
-              <input id="tripUpdateInput" type="text" maxlength="160" placeholder="No fish after two hours at Ridge South" required />
-            </label>
-            <label>
-              Status
-              <select id="tripStatusControl">
-                <option value="pre-departure">Pre-departure</option>
-                <option value="underway" selected>Underway</option>
-                <option value="fishing">Fishing</option>
-                <option value="heading-home">Heading home</option>
-                <option value="recap">Recap</option>
-              </select>
-            </label>
-            <label>
-              Type
-              <select id="typeInput">
-                <option selected>Boat life</option>
-                <option>Tuna</option>
-                <option>Mahi mahi</option>
-                <option>Weather</option>
-                <option>Mark</option>
-                <option>Quote</option>
-              </select>
-            </label>
-            <div class="catch-details" id="catchDetails" hidden aria-hidden="true">
-              <label>
-                Method
-                <select id="methodInput">
-                  <option>Trolling</option>
-                  <option>Jigging</option>
-                  <option>Running</option>
-                  <option>Dockside</option>
-                  <option>Other</option>
-                </select>
-              </label>
-              <label>
-                Angler
-                <select id="anglerInput">
-                  <option value="">Crew</option>
-                  <option>John</option>
-                  <option>Bill</option>
-                  <option>Pete</option>
-                  <option>Phil</option>
-                  <option>Will</option>
-                </select>
-              </label>
-            </div>
-            <button class="primary-action full" id="saveTripUpdateButton" type="submit" disabled>Save to trip log</button>
-            <p class="sync-error" id="syncError" hidden></p>
-          </form>
-          <p class="official-log-note">
-            Official fish catches go on John's Waterpoof app first. This board is public and collaborative,
-            so anyone with the link can add, edit, or delete entries.
-          </p>
-        </div>
-
-        <div class="timeline-panel">
-          <div class="section-heading">
-            <span>Timeline</span>
-            <h2>Trip log</h2>
-          </div>
-          <div class="crew-tally" role="group" aria-label="Fish Box Standings">
-            <div class="leaderboard-header">
-              <small>John vs Bill vs Pete vs Phil vs Will</small>
-              <strong>Fish Box Face-Off</strong>
-            </div>
-            <ul class="tally-list" id="crewTally"></ul>
-          </div>
-          <div class="log-metrics">
-            <div>
-              <small>Catch count</small>
-              <strong id="catchCount">0</strong>
-            </div>
-            <div>
-              <small>Last update</small>
-              <strong id="lastUpdate">Stand by</strong>
-            </div>
-          </div>
-          <ol class="timeline" id="timelineList"></ol>
         </div>
       </section>
 

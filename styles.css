@@ -1091,6 +1091,14 @@ small {
   padding: 58px 0 22px;
 }
 
+.tools-grid > .shared-controls {
+  grid-template-columns: 1fr;
+  margin-top: 0;
+  padding: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
 .tracker-card,
 .log-panel,
 .timeline-panel {

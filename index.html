@@ -113,44 +113,6 @@
               <strong>Late afternoon, exact time TBD</strong>
             </div>
           </div>
-          <form class="shared-controls" id="tripStateForm" aria-label="Live trip status update">
-            <div class="shared-controls-heading">
-              <div>
-                <small>Live trip status</small>
-                <strong>Update the current trip for everyone</strong>
-              </div>
-              <span class="sync-state" id="syncState" data-state="pending" aria-live="polite">Pending</span>
-            </div>
-            <p class="shared-controls-help">
-              This changes the live trip status, destination, and return note. Add timestamped catches and updates in the trip log below.
-            </p>
-            <label>
-              Status
-              <select id="tripStatusControl">
-                <option value="pre-departure">Pre-departure</option>
-                <option value="underway" selected>Underway</option>
-                <option value="fishing">Fishing</option>
-                <option value="heading-home">Heading home</option>
-                <option value="recap">Recap</option>
-              </select>
-            </label>
-            <label>
-              Active destination
-              <select id="destinationControl">
-                <option>Manasquan Inlet</option>
-                <option selected>Barnegat Ridge South</option>
-                <option>Barnegat Ridge North</option>
-                <option>Seaside Lumps</option>
-                <option>Home</option>
-              </select>
-            </label>
-            <label class="return-note-control">
-              Return note
-              <input id="returnNoteControl" maxlength="160" value="Late afternoon, exact time TBD" />
-            </label>
-            <button class="primary-action shared-controls-save" id="saveTripStateButton" type="submit" disabled>Save trip update</button>
-            <p class="sync-error" id="syncError" hidden></p>
-          </form>
           <div class="boat-strip">
             <span class="boat-icon" aria-hidden="true"></span>
             <div>
@@ -495,6 +457,45 @@
       </section>
 
       <section class="tools-grid section-shell" id="log">
+        <form class="shared-controls" id="tripStateForm" aria-label="Live trip status update">
+          <div class="shared-controls-heading">
+            <div>
+              <small>Live trip status</small>
+              <strong>Update the current trip for everyone</strong>
+            </div>
+            <span class="sync-state" id="syncState" data-state="pending" aria-live="polite">Pending</span>
+          </div>
+          <p class="shared-controls-help">
+            Change the current status, destination, and note here. Use the trip log for timestamped catches and updates.
+          </p>
+          <label>
+            Status
+            <select id="tripStatusControl">
+              <option value="pre-departure">Pre-departure</option>
+              <option value="underway" selected>Underway</option>
+              <option value="fishing">Fishing</option>
+              <option value="heading-home">Heading home</option>
+              <option value="recap">Recap</option>
+            </select>
+          </label>
+          <label>
+            Active destination
+            <select id="destinationControl">
+              <option>Manasquan Inlet</option>
+              <option selected>Barnegat Ridge South</option>
+              <option>Barnegat Ridge North</option>
+              <option>Seaside Lumps</option>
+              <option>Home</option>
+            </select>
+          </label>
+          <label class="return-note-control">
+            Note
+            <input id="returnNoteControl" maxlength="160" value="Late afternoon, exact time TBD" />
+          </label>
+          <button class="primary-action shared-controls-save" id="saveTripStateButton" type="submit" disabled>Save trip update</button>
+          <p class="sync-error" id="syncError" hidden></p>
+        </form>
+
         <div class="log-panel">
           <div class="section-heading">
             <span>Trip Log</span>

@@ -17,12 +17,20 @@ test("active board exposes public shared state controls and sync states", async 
   assert.match(app, /updateTripState/);
 });
 
-test("live trip state has one explicit save action and explains the separate trip log", async () => {
+test("live trip state editor sits beside the board log and uses a generic note", async () => {
   const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
 
   assert.match(html, /<form[^>]+id="tripStateForm"/);
   assert.match(html, /id="saveTripStateButton"[^>]*>Save trip update</);
-  assert.match(html, /This changes the live trip status[^<]+trip log below/i);
+  assert.match(html, /<label class="return-note-control">\s*Note\s*<input id="returnNoteControl"/);
+  assert.doesNotMatch(html, /Return note/i);
+
+  const logSection = html.indexOf('<section class="tools-grid section-shell" id="log">');
+  const tripStateForm = html.indexOf('id="tripStateForm"');
+  const boardLog = html.indexOf('<div class="timeline-panel">');
+  assert.ok(logSection >= 0, "trip log section should exist");
+  assert.ok(tripStateForm > logSection, "trip state editor should be inside the trip log section");
+  assert.ok(tripStateForm < boardLog, "trip state editor should sit beside the board log timeline");
   assert.match(app, /tripStateForm\.addEventListener\("submit"/);
   assert.doesNotMatch(app, /element\.addEventListener\("change"/);
 });

@@ -13,7 +13,7 @@ Canonical production URL: [`https://ofishal-business.vercel.app`](https://ofisha
 - Live wind/wave forecast from Open-Meteo, tides from NOAA
 - Sunrise, sunset, and moon phase bite windows
 - Crew cards, species guide, trip log, photo gallery, prep checklist
-- Shared Supabase-backed trip status, destination, return note, and realtime trip log
+- Shared Supabase-backed trip status, destination, note, and realtime trip log
 - Durable offline write queue with visible synced, pending, and offline states
 - Live bluefin status, permit, reporting, and safety links
 

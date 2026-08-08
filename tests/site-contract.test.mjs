@@ -46,3 +46,14 @@ test("required DOM IDs are unique", async () => {
   const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
   assert.equal(new Set(ids).size, ids.length);
 });
+
+test("active live conditions avoid the NDBC text feed CORS failure", async () => {
+  const app = await read("app.js");
+  assert.doesNotMatch(app, /www\.ndbc\.noaa\.gov\/data\/realtime2\/44091\.txt/);
+  assert.match(app, /api\.weather\.gov\/stations\/44091\/observations\/latest/);
+});
+
+test("archived July board also avoids its legacy NDBC CORS failure", async () => {
+  const app = await read("archive/2026-07-03-canyon-run/app.js");
+  assert.doesNotMatch(app, /www\.ndbc\.noaa\.gov\/data\/realtime2\/44066\.txt/);
+});

@@ -638,39 +638,45 @@ async function refreshWeather() {
 
 async function refreshBuoy() {
   if (!els.buoyHead) return;
+  const { lat, lon } = points.seasideLumps;
   try {
-    const res = await fetchWithTimeout("https://www.ndbc.noaa.gov/data/realtime2/44091.txt", {}, 8000);
-    if (!res.ok) throw new Error("ndbc request failed");
-    const text = await res.text();
-    const row = text
-      .trim()
-      .split("\n")
-      .find((line) => !line.startsWith("#"));
-    if (!row) throw new Error("no buoy data");
-    const c = row.trim().split(/\s+/);
-    const num = (v) => (v === undefined || v === "MM" ? null : Number(v));
-    const wtmp = num(c[14]);
-    const wvht = num(c[8]);
-    const wspd = num(c[6]);
-    const gst = num(c[7]);
-    const wdir = num(c[5]);
+    const stationUrl = "https://api.weather.gov/stations/44091/observations/latest";
+    const marineUrl =
+      `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}` +
+      `&current=sea_surface_temperature,wave_height&timezone=America%2FNew_York`;
+    const windUrl =
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+      `&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kn&timezone=America%2FNew_York`;
+    const [stationRes, marineRes, windRes] = await Promise.all([
+      fetchWithTimeout(stationUrl, { headers: { Accept: "application/geo+json" } }, 8000),
+      fetchWithTimeout(marineUrl, {}, 8000),
+      fetchWithTimeout(windUrl, {}, 8000),
+    ]);
+    if (!stationRes.ok || !marineRes.ok || !windRes.ok) throw new Error("conditions request failed");
 
-    if (wtmp === null && wvht === null && wspd === null) throw new Error("buoy fields empty");
+    const station = (await stationRes.json()).properties;
+    const marine = (await marineRes.json()).current;
+    const wind = (await windRes.json()).current;
+    const airC = station.temperature?.value;
+    const airF = airC === null || airC === undefined ? null : (airC * 9) / 5 + 32;
+    const waterC = marine.sea_surface_temperature;
+    const waterF = waterC === null || waterC === undefined ? null : (waterC * 9) / 5 + 32;
+    const waveM = marine.wave_height;
+    const observed = station.timestamp
+      ? new Date(station.timestamp).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+      : "latest report";
 
-    const waterF = wtmp === null ? null : (wtmp * 9) / 5 + 32;
-    const waveFt = wvht === null ? null : wvht * 3.28084;
-    const windKt = wspd === null ? null : wspd * 1.94384;
-    const gustKt = gst === null ? null : gst * 1.94384;
-    const obs = `${c[1]}/${c[2]} ${c[3]}:${c[4]} UTC`;
-
-    els.buoyHead.textContent = waterF === null ? "Buoy 44091 reporting" : `${waterF.toFixed(1)}°F water`;
+    els.buoyHead.textContent = waterF === null ? "Live grounds conditions" : `${waterF.toFixed(1)}°F model SST`;
     els.buoyMetrics.innerHTML = `
-      <li><strong>Water</strong> ${waterF === null ? "n/a" : `${waterF.toFixed(1)}°F`}</li>
-      <li><strong>Waves</strong> ${waveFt === null ? "n/a" : `${waveFt.toFixed(1)} ft`}</li>
-      <li><strong>Wind</strong> ${windKt === null ? "n/a" : `${wdir === null ? "" : `${compass(wdir)} `}${Math.round(windKt)} kt`}</li>
-      <li><strong>Gusts</strong> ${gustKt === null ? "n/a" : `to ${Math.round(gustKt)} kt`}</li>
+      <li><strong>NDBC air</strong> ${airF === null ? "n/a" : `${airF.toFixed(1)}°F`}</li>
+      <li><strong>Model SST</strong> ${waterF === null ? "n/a" : `${waterF.toFixed(1)}°F`}</li>
+      <li><strong>Waves</strong> ${waveM === null || waveM === undefined ? "n/a" : `${(waveM * 3.28084).toFixed(1)} ft`}</li>
+      <li><strong>Wind</strong> ${compass(wind.wind_direction_10m)} ${Math.round(wind.wind_speed_10m)} kt</li>
+      <li><strong>Gusts</strong> to ${Math.round(wind.wind_gusts_10m)} kt</li>
     `;
-    els.buoyNote.textContent = `Observed at NDBC 44091 near Barnegat, ${obs}. Water temperature is one piece of the tuna puzzle.`;
+    els.buoyNote.textContent =
+      `NDBC 44091 air observed at ${observed}; water, waves, and wind are modeled at Seaside Lumps. ` +
+      "Use the linked NDBC page and onboard instruments for the captain's final check.";
   } catch {
     await buoyFallback();
   }

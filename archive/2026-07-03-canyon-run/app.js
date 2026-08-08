@@ -711,42 +711,7 @@ async function refreshWeather() {
 
 async function refreshBuoy() {
   if (!els.buoyHead) return;
-  try {
-    const res = await fetchWithTimeout("https://www.ndbc.noaa.gov/data/realtime2/44066.txt", {}, 8000);
-    if (!res.ok) throw new Error("ndbc request failed");
-    const text = await res.text();
-    const row = text
-      .trim()
-      .split("\n")
-      .find((line) => !line.startsWith("#"));
-    if (!row) throw new Error("no buoy data");
-    const c = row.trim().split(/\s+/);
-    const num = (v) => (v === undefined || v === "MM" ? null : Number(v));
-    const wtmp = num(c[14]);
-    const wvht = num(c[8]);
-    const wspd = num(c[6]);
-    const gst = num(c[7]);
-    const wdir = num(c[5]);
-
-    if (wtmp === null && wvht === null && wspd === null) throw new Error("buoy fields empty");
-
-    const waterF = wtmp === null ? null : (wtmp * 9) / 5 + 32;
-    const waveFt = wvht === null ? null : wvht * 3.28084;
-    const windKt = wspd === null ? null : wspd * 1.94384;
-    const gustKt = gst === null ? null : gst * 1.94384;
-    const obs = `${c[1]}/${c[2]} ${c[3]}:${c[4]} UTC`;
-
-    els.buoyHead.textContent = waterF === null ? "Buoy 44066 reporting" : `${waterF.toFixed(1)}°F water`;
-    els.buoyMetrics.innerHTML = `
-      <li><strong>Water</strong> ${waterF === null ? "n/a" : `${waterF.toFixed(1)}°F`}</li>
-      <li><strong>Waves</strong> ${waveFt === null ? "n/a" : `${waveFt.toFixed(1)} ft`}</li>
-      <li><strong>Wind</strong> ${windKt === null ? "n/a" : `${wdir === null ? "" : `${compass(wdir)} `}${Math.round(windKt)} kt`}</li>
-      <li><strong>Gusts</strong> ${gustKt === null ? "n/a" : `to ${Math.round(gustKt)} kt`}</li>
-    `;
-    els.buoyNote.textContent = `Observed at buoy 44066, ${obs}. Water temp is the tuna tell.`;
-  } catch {
-    await buoyFallback();
-  }
+  await buoyFallback();
 }
 
 async function buoyFallback() {

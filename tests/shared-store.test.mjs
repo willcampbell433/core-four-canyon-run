@@ -231,3 +231,41 @@ test("trip state realtime updates preserve local-only GPS boundary", async () =>
   assert.equal(snapshot.tripState.active_destination, "Seaside Lumps");
   assert.doesNotMatch(JSON.stringify(snapshot), /latitude|longitude|coordinates/);
 });
+
+test("a rejected trip-state update is rolled back and cannot poison later saves", async () => {
+  const mutations = [];
+  let rejectNextMutation = true;
+  const store = createSharedStore({
+    client: {
+      load: async () => serverSnapshot,
+      subscribe: () => () => {},
+      mutate: async (mutation) => {
+        mutations.push(mutation);
+        if (rejectNextMutation) {
+          rejectNextMutation = false;
+          throw new Error('new row violates check constraint "trip_state_return_note_check"');
+        }
+      },
+    },
+    storage: memoryStorage(),
+  });
+  await store.start();
+
+  await store.updateTripState({ return_note: "" });
+
+  assert.equal(store.getSnapshot().queuedCount, 0);
+  assert.equal(store.getSnapshot().syncState, "synced");
+  assert.equal(store.getSnapshot().tripState.return_note, "Late afternoon");
+  assert.equal(store.getSnapshot().error, "That update contains an invalid or oversized value.");
+
+  await store.updateTripState({
+    status: "fishing",
+    active_destination: "Barnegat Ridge South",
+    return_note: "Late afternoon, exact time TBD",
+  });
+
+  assert.equal(mutations.length, 2);
+  assert.equal(store.getSnapshot().queuedCount, 0);
+  assert.equal(store.getSnapshot().syncState, "synced");
+  assert.equal(store.getSnapshot().error, null);
+});

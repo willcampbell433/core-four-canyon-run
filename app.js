@@ -145,9 +145,11 @@ const els = {
   speedCourseReadout: document.querySelector("#speedCourseReadout"),
   etaReadout: document.querySelector("#etaReadout"),
   crewTally: document.querySelector("#crewTally"),
+  tripStateForm: document.querySelector("#tripStateForm"),
   tripStatusControl: document.querySelector("#tripStatusControl"),
   destinationControl: document.querySelector("#destinationControl"),
   returnNoteControl: document.querySelector("#returnNoteControl"),
+  saveTripStateButton: document.querySelector("#saveTripStateButton"),
   syncState: document.querySelector("#syncState"),
   syncError: document.querySelector("#syncError"),
   publishLocalButton: document.querySelector("#publishLocalButton"),
@@ -939,6 +941,7 @@ async function setupSharedBoard() {
   sharedStore = createSharedStore({ client, seeds: sharedSeeds });
   sharedStore.subscribe(renderSharedSnapshot);
   await sharedStore.start();
+  els.saveTripStateButton.disabled = false;
 
   const hostedMoments = new Set(seedEntries.map((entry) => entry.moment));
   const publishable = localEntries.filter((entry) => !hostedMoments.has(entry.moment));
@@ -1007,13 +1010,22 @@ els.timeline.addEventListener("click", async (event) => {
   }
 });
 
-for (const [element, field] of [
-  [els.tripStatusControl, "status"],
-  [els.destinationControl, "active_destination"],
-  [els.returnNoteControl, "return_note"],
-]) {
-  element.addEventListener("change", () => sharedStore?.updateTripState({ [field]: element.value.trim() }));
-}
+els.tripStateForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (!sharedStore) return;
+
+  els.saveTripStateButton.disabled = true;
+  els.saveTripStateButton.textContent = "Saving...";
+  await sharedStore.updateTripState({
+    status: els.tripStatusControl.value,
+    active_destination: els.destinationControl.value,
+    return_note: els.returnNoteControl.value.trim(),
+  });
+
+  const saved = !sharedStore.getSnapshot().error;
+  els.saveTripStateButton.textContent = saved ? "Trip update saved" : "Try again";
+  els.saveTripStateButton.disabled = false;
+});
 
 if (els.copyLogButton) {
   els.copyLogButton.addEventListener("click", copyBoardLog);

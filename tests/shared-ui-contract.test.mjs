@@ -17,6 +17,16 @@ test("active board exposes public shared state controls and sync states", async 
   assert.match(app, /updateTripState/);
 });
 
+test("live trip state has one explicit save action and explains the separate trip log", async () => {
+  const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
+
+  assert.match(html, /<form[^>]+id="tripStateForm"/);
+  assert.match(html, /id="saveTripStateButton"[^>]*>Save trip update</);
+  assert.match(html, /This changes the live trip status[^<]+trip log below/i);
+  assert.match(app, /tripStateForm\.addEventListener\("submit"/);
+  assert.doesNotMatch(app, /element\.addEventListener\("change"/);
+});
+
 test("active log supports public edit and confirmed delete", async () => {
   const app = await read("app.js");
 

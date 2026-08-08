@@ -575,12 +575,30 @@
       </section>
 
       <section class="gallery-section section-shell" id="gallery">
-        <div class="section-heading wide">
-          <span>After Action</span>
-          <h2>Trip gallery</h2>
+        <div class="gallery-heading">
+          <div class="section-heading wide">
+            <span>After Action</span>
+            <h2>Trip gallery</h2>
+          </div>
+          <label class="primary-action photo-picker-action is-disabled" for="photoPicker" id="photoPickerAction" aria-disabled="true">
+            Add photos
+          </label>
+          <input class="visually-hidden" id="photoPicker" type="file" accept="image/*" multiple disabled />
         </div>
-        <div class="gallery-grid">
-          <figure class="gallery-photo">
+        <div class="photo-upload-panel" id="photoUploadPanel" hidden>
+          <div>
+            <strong id="photoSelectionSummary">No photos selected</strong>
+            <small>Photos are compressed before upload. Shared uploads require an internet connection.</small>
+          </div>
+          <label>
+            Caption for this batch <span>(optional)</span>
+            <input id="photoCaptionInput" type="text" maxlength="240" placeholder="First tuna of the day" />
+          </label>
+          <button class="primary-action" id="uploadPhotosButton" type="button">Upload photos</button>
+          <p class="photo-upload-status" id="photoUploadStatus" role="status" aria-live="polite"></p>
+        </div>
+        <div class="gallery-grid" id="sharedPhotoList">
+          <figure class="gallery-photo" data-static-photo>
             <img src="assets/ofishal-business-underway.jpg" alt="The Ofishal Business underway in the canal" loading="lazy" />
           </figure>
         </div>

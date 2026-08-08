@@ -140,3 +140,20 @@ test("July archive remains isolated from shared storage", async () => {
   assert.doesNotMatch(app, /shared-config|shared-store|supabase/i);
   assert.match(app, /core-four-canyon-run-log-v2/);
 });
+
+test("trip gallery exposes one accessible shared photo upload pathway", async () => {
+  const [html, archiveHtml] = await Promise.all([
+    read("index.html"),
+    read("archive/2026-07-03-canyon-run/index.html"),
+  ]);
+
+  assert.match(html, /<label[^>]+for="photoPicker"[^>]*>[\s\S]*Add photos[\s\S]*<\/label>/i);
+  assert.match(html, /<input[^>]+id="photoPicker"[^>]+type="file"[^>]+accept="image\/\*"[^>]+multiple/);
+  assert.match(html, /id="photoUploadPanel"[^>]*hidden/);
+  assert.match(html, /id="photoCaptionInput"[^>]+maxlength="240"/);
+  assert.match(html, /id="uploadPhotosButton"[^>]+type="button"/);
+  assert.match(html, /id="photoUploadStatus"[^>]+role="status"/);
+  assert.match(html, /id="sharedPhotoList"/);
+  assert.match(html, /data-static-photo/);
+  assert.doesNotMatch(archiveHtml, /photoPicker|photoUploadPanel|sharedPhotoList/);
+});

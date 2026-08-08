@@ -237,6 +237,45 @@ export function createSharedStore({
     await replayQueue();
   }
 
+  async function saveTripUpdate({ state, entry }) {
+    const timestamp = now();
+    const tripId = snapshot.tripState?.trip_id
+      || snapshot.trip?.id
+      || "fabe5000-0000-4000-8000-000000000001";
+    const stateRow = {
+      ...snapshot.tripState,
+      ...state,
+      trip_id: tripId,
+      updated_at: timestamp,
+    };
+    const entryRow = {
+      id: entry.id || uuid(),
+      trip_id: tripId,
+      time_label: entry.time_label,
+      entry_type: entry.entry_type,
+      method: entry.method,
+      angler: entry.angler || null,
+      moment: entry.moment,
+      created_at: entry.created_at || timestamp,
+      updated_at: entry.updated_at || timestamp,
+    };
+    delete stateRow._pending;
+
+    snapshot.tripState = { ...stateRow, _pending: Boolean(client) };
+    snapshot.entries = sortEntries([
+      ...snapshot.entries,
+      { ...entryRow, _pending: Boolean(client) },
+    ]);
+    if (client) {
+      enqueue({ kind: "update-state", row: stateRow });
+      enqueue({ kind: "create-entry", row: entryRow });
+    }
+    cacheSnapshot();
+    emit();
+    await replayQueue();
+    return { state: stateRow, entry: entryRow };
+  }
+
   return {
     start,
     getSnapshot: () => snapshot,
@@ -249,6 +288,7 @@ export function createSharedStore({
     updateEntry,
     deleteEntry,
     updateTripState,
+    saveTripUpdate,
     replayQueue,
     destroy() {
       unsubscribeRemote?.();

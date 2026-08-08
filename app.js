@@ -133,7 +133,6 @@ const els = {
   lastUpdate: document.querySelector("#lastUpdate"),
   catchCount: document.querySelector("#catchCount"),
   timeline: document.querySelector("#timelineList"),
-  form: document.querySelector("#logForm"),
   replacementGrade: document.querySelector("#replacementGrade"),
   tideList: document.querySelector("#tideList"),
   runDistance: document.querySelector("#runDistance"),
@@ -144,11 +143,18 @@ const els = {
   speedCourseReadout: document.querySelector("#speedCourseReadout"),
   etaReadout: document.querySelector("#etaReadout"),
   crewTally: document.querySelector("#crewTally"),
-  tripStateForm: document.querySelector("#tripStateForm"),
+  tripUpdateForm: document.querySelector("#tripUpdateForm"),
+  tripUpdateInput: document.querySelector("#tripUpdateInput"),
   tripStatusControl: document.querySelector("#tripStatusControl"),
   destinationControl: document.querySelector("#destinationControl"),
-  returnNoteControl: document.querySelector("#returnNoteControl"),
-  saveTripStateButton: document.querySelector("#saveTripStateButton"),
+  typeInput: document.querySelector("#typeInput"),
+  methodInput: document.querySelector("#methodInput"),
+  anglerInput: document.querySelector("#anglerInput"),
+  catchDetails: document.querySelector("#catchDetails"),
+  currentTripStatus: document.querySelector("#currentTripStatus"),
+  currentTripDestination: document.querySelector("#currentTripDestination"),
+  currentTripNote: document.querySelector("#currentTripNote"),
+  saveTripUpdateButton: document.querySelector("#saveTripUpdateButton"),
   syncState: document.querySelector("#syncState"),
   syncError: document.querySelector("#syncError"),
   buoyHead: document.querySelector("#buoyHead"),
@@ -171,6 +177,26 @@ function entryTime(entry) {
 
 function entryType(entry) {
   return entry.entry_type ?? entry.type ?? "Boat life";
+}
+
+function formatTripStatus(status) {
+  return {
+    "pre-departure": "Pre-departure",
+    underway: "Underway",
+    fishing: "Fishing",
+    "heading-home": "Heading home",
+    recap: "Recap",
+  }[status] || status;
+}
+
+function isCatchType(type) {
+  return type === "Tuna" || type === "Mahi mahi";
+}
+
+function updateCatchDetailsVisibility() {
+  const show = isCatchType(els.typeInput.value);
+  els.catchDetails.hidden = !show;
+  els.catchDetails.setAttribute("aria-hidden", String(!show));
 }
 
 function activeEntries() {
@@ -881,7 +907,9 @@ function renderSharedSnapshot(snapshot) {
   if (state) {
     if (document.activeElement !== els.tripStatusControl) els.tripStatusControl.value = state.status;
     if (document.activeElement !== els.destinationControl) els.destinationControl.value = state.active_destination;
-    if (document.activeElement !== els.returnNoteControl) els.returnNoteControl.value = state.return_note;
+    els.currentTripStatus.textContent = formatTripStatus(state.status);
+    els.currentTripDestination.textContent = state.active_destination;
+    els.currentTripNote.textContent = state.return_note;
     trackerDestination = Object.values(points).find((point) => point.label === state.active_destination) || points.ridgeSouth;
   }
 
@@ -907,15 +935,25 @@ async function setupSharedBoard() {
   sharedStore = createSharedStore({ client, seeds: sharedSeeds });
   sharedStore.subscribe(renderSharedSnapshot);
   await sharedStore.start();
-  els.saveTripStateButton.disabled = false;
+  els.saveTripUpdateButton.disabled = false;
   window.addEventListener("online", () => sharedStore.replayQueue());
 }
 
 /* ---------- Wire up ---------- */
 
-els.form.addEventListener("submit", async (event) => {
+els.typeInput.addEventListener("change", updateCatchDetailsVisibility);
+updateCatchDetailsVisibility();
+
+els.tripUpdateForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const formData = new FormData(els.form);
+  if (!sharedStore) return;
+
+  const updateText = els.tripUpdateInput.value.trim();
+  if (!updateText) return;
+
+  const status = els.tripStatusControl.value;
+  const type = els.typeInput.value;
+  const catchEntry = isCatchType(type);
   const now = new Date();
   const entry = {
     time_label: now.toLocaleString([], {
@@ -924,25 +962,39 @@ els.form.addEventListener("submit", async (event) => {
       hour: "numeric",
       minute: "2-digit",
     }),
-    moment: formData.get("moment"),
-    entry_type: formData.get("type"),
-    method: formData.get("method"),
-    angler: formData.get("angler") || null,
+    moment: updateText,
+    entry_type: type,
+    method: catchEntry
+      ? els.methodInput.value
+      : (["underway", "heading-home"].includes(status) ? "Running" : "Other"),
+    angler: catchEntry ? (els.anglerInput.value || null) : null,
   };
-  if (sharedStore) {
-    await sharedStore.addEntry(entry);
-  } else {
-    writeEntries([...readEntries(), {
-      time: entry.time_label,
-      type: entry.entry_type,
-      method: entry.method,
-      angler: entry.angler || "",
-      moment: entry.moment,
-    }]);
-    renderTimeline();
+
+  els.saveTripUpdateButton.disabled = true;
+  els.saveTripUpdateButton.textContent = "Saving...";
+  await sharedStore.saveTripUpdate({
+    state: {
+      status,
+      active_destination: els.destinationControl.value,
+      return_note: updateText,
+    },
+    entry,
+  });
+
+  const snapshot = sharedStore.getSnapshot();
+  const accepted = !snapshot.error || snapshot.queuedCount > 0;
+  els.saveTripUpdateButton.textContent = accepted
+    ? (snapshot.queuedCount ? "Update queued" : "Saved to trip log")
+    : "Try again";
+  els.saveTripUpdateButton.disabled = false;
+  if (accepted) {
+    els.tripUpdateInput.value = "";
+    els.typeInput.value = "Boat life";
+    els.methodInput.value = "Trolling";
+    els.anglerInput.value = "";
+    updateCatchDetailsVisibility();
+    touchLastUpdate();
   }
-  els.form.reset();
-  touchLastUpdate();
 });
 
 els.timeline.addEventListener("click", async (event) => {
@@ -961,23 +1013,6 @@ els.timeline.addEventListener("click", async (event) => {
     const id = deleteButton.dataset.entryDelete;
     if (confirm("Delete this shared board-log entry?")) await sharedStore.deleteEntry(id);
   }
-});
-
-els.tripStateForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!sharedStore) return;
-
-  els.saveTripStateButton.disabled = true;
-  els.saveTripStateButton.textContent = "Saving...";
-  await sharedStore.updateTripState({
-    status: els.tripStatusControl.value,
-    active_destination: els.destinationControl.value,
-    return_note: els.returnNoteControl.value.trim(),
-  });
-
-  const saved = !sharedStore.getSnapshot().error;
-  els.saveTripStateButton.textContent = saved ? "Trip update saved" : "Try again";
-  els.saveTripStateButton.disabled = false;
 });
 
 function runStartupTask(name, task) {

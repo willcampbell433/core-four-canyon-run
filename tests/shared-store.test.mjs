@@ -129,6 +129,48 @@ test("offline create is durable and replays once with its client UUID", async ()
   assert.equal(store.getSnapshot().syncState, "synced");
 });
 
+test("one trip update queues live state and its log entry together in order", async () => {
+  let isOnline = false;
+  let uuidCount = 0;
+  const mutations = [];
+  const store = createSharedStore({
+    client: {
+      load: async () => serverSnapshot,
+      subscribe: () => () => {},
+      mutate: async (mutation) => mutations.push(mutation.kind),
+    },
+    storage: memoryStorage(),
+    online: () => isOnline,
+    uuid: () => `queued-${++uuidCount}`,
+  });
+  await store.start();
+
+  await store.saveTripUpdate({
+    state: {
+      status: "fishing",
+      active_destination: "Barnegat Ridge South",
+      return_note: "Still trolling, no fish yet",
+    },
+    entry: {
+      id: "trip-update-entry",
+      time_label: "8:00 AM",
+      entry_type: "Boat life",
+      method: "Other",
+      moment: "Still trolling, no fish yet",
+    },
+  });
+
+  assert.equal(store.getSnapshot().queuedCount, 2);
+  assert.equal(store.getSnapshot().tripState.return_note, "Still trolling, no fish yet");
+  assert.equal(store.getSnapshot().entries.at(-1).id, "trip-update-entry");
+
+  isOnline = true;
+  await store.replayQueue();
+
+  assert.deepEqual(mutations, ["update-state", "create-entry"]);
+  assert.equal(store.getSnapshot().queuedCount, 0);
+});
+
 test("provided deterministic import UUID is preserved", async () => {
   const mutations = [];
   const store = createSharedStore({

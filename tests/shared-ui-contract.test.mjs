@@ -7,32 +7,54 @@ const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 test("active board exposes public shared state controls and sync states", async () => {
   const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
 
-  for (const id of ["tripStatusControl", "destinationControl", "returnNoteControl", "syncState"]) {
+  for (const id of [
+    "tripStatusControl",
+    "destinationControl",
+    "tripUpdateInput",
+    "currentTripStatus",
+    "currentTripDestination",
+    "currentTripNote",
+    "syncState",
+  ]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   for (const label of ["Synced", "Pending", "Offline", "Local only"]) {
     assert.match(`${html}\n${app}`, new RegExp(label, "i"));
   }
-  assert.match(html, />Add to shared log</);
-  assert.match(app, /updateTripState/);
+  assert.match(html, />Save to trip log</);
+  assert.match(app, /saveTripUpdate/);
 });
 
-test("live trip state editor sits beside the board log and uses a generic note", async () => {
+test("one trip update form saves the same update to live state and the board log", async () => {
   const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
 
-  assert.match(html, /<form[^>]+id="tripStateForm"/);
-  assert.match(html, /id="saveTripStateButton"[^>]*>Save trip update</);
-  assert.match(html, /<label class="return-note-control">\s*Note\s*<input id="returnNoteControl"/);
-  assert.doesNotMatch(html, /Return note/i);
+  assert.match(html, /<form[^>]+id="tripUpdateForm"/);
+  assert.doesNotMatch(html, /id="tripStateForm"|id="logForm"/);
+  assert.doesNotMatch(html, /id="saveTripStateButton"|id="returnNoteControl"/);
+  assert.equal((html.match(/type="submit"/g) || []).length, 1);
 
   const logSection = html.indexOf('<section class="tools-grid section-shell" id="log">');
-  const tripStateForm = html.indexOf('id="tripStateForm"');
+  const tripUpdateForm = html.indexOf('id="tripUpdateForm"');
   const boardLog = html.indexOf('<div class="timeline-panel">');
   assert.ok(logSection >= 0, "trip log section should exist");
-  assert.ok(tripStateForm > logSection, "trip state editor should be inside the trip log section");
-  assert.ok(tripStateForm < boardLog, "trip state editor should sit beside the board log timeline");
-  assert.match(app, /tripStateForm\.addEventListener\("submit"/);
-  assert.doesNotMatch(app, /element\.addEventListener\("change"/);
+  assert.ok(tripUpdateForm > logSection, "trip update form should be inside the trip log section");
+  assert.ok(tripUpdateForm < boardLog, "trip update form should sit beside the board log timeline");
+  assert.match(app, /tripUpdateForm\.addEventListener\("submit"/);
+  assert.equal((app.match(/addEventListener\("submit"/g) || []).length, 1);
+  assert.match(app, /const updateText = els\.tripUpdateInput\.value\.trim\(\)/);
+  assert.match(app, /return_note: updateText/);
+  assert.match(app, /moment: updateText/);
+  assert.match(app, /await sharedStore\.saveTripUpdate\(\{[\s\S]*state:[\s\S]*entry/);
+});
+
+test("catch details appear only for fish entries", async () => {
+  const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
+
+  assert.match(html, /id="catchDetails"[^>]*hidden/);
+  assert.match(html, /id="typeInput"[\s\S]*<option>Tuna<\/option>[\s\S]*<option>Mahi mahi<\/option>/);
+  assert.match(app, /function isCatchType\(type\)/);
+  assert.match(app, /catchDetails\.hidden = !show/);
+  assert.match(app, /typeInput\.addEventListener\("change", updateCatchDetailsVisibility\)/);
 });
 
 test("active log supports public edit and confirmed delete", async () => {
@@ -51,7 +73,7 @@ test("shared log relies on automatic persistence without legacy manual actions",
   assert.doesNotMatch(html, /Publish my local entries|Copy board log/);
   assert.doesNotMatch(html, /id="(?:publishLocalButton|copyLogButton)"/);
   assert.doesNotMatch(app, /publishLocalButton|copyLogButton|copyBoardLog|formatBoardLogExport/);
-  assert.match(app, /await sharedStore\.addEntry\(entry\)/);
+  assert.match(app, /await sharedStore\.saveTripUpdate\(/);
   assert.match(app, /window\.addEventListener\("online", \(\) => sharedStore\.replayQueue\(\)\)/);
 });
 

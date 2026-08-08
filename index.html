@@ -457,88 +457,90 @@
       </section>
 
       <section class="tools-grid section-shell" id="log">
-        <form class="shared-controls" id="tripStateForm" aria-label="Live trip status update">
-          <div class="shared-controls-heading">
-            <div>
-              <small>Live trip status</small>
-              <strong>Update the current trip for everyone</strong>
+        <div class="log-panel trip-update-panel">
+          <div class="trip-update-heading">
+            <div class="section-heading">
+              <span>Trip Log</span>
+              <h2>Add trip update</h2>
             </div>
             <span class="sync-state" id="syncState" data-state="pending" aria-live="polite">Pending</span>
           </div>
-          <p class="shared-controls-help">
-            Change the current status, destination, and note here. Use the trip log for timestamped catches and updates.
-          </p>
-          <label>
-            Status
-            <select id="tripStatusControl">
-              <option value="pre-departure">Pre-departure</option>
-              <option value="underway" selected>Underway</option>
-              <option value="fishing">Fishing</option>
-              <option value="heading-home">Heading home</option>
-              <option value="recap">Recap</option>
-            </select>
-          </label>
-          <label>
-            Active destination
-            <select id="destinationControl">
-              <option>Manasquan Inlet</option>
-              <option selected>Barnegat Ridge South</option>
-              <option>Barnegat Ridge North</option>
-              <option>Seaside Lumps</option>
-              <option>Home</option>
-            </select>
-          </label>
-          <label class="return-note-control">
-            Note
-            <input id="returnNoteControl" maxlength="160" value="Late afternoon, exact time TBD" />
-          </label>
-          <button class="primary-action shared-controls-save" id="saveTripStateButton" type="submit" disabled>Save trip update</button>
-          <p class="sync-error" id="syncError" hidden></p>
-        </form>
-
-        <div class="log-panel">
-          <div class="section-heading">
-            <span>Trip Log</span>
-            <h2>Save the good stuff</h2>
+          <div class="current-trip-summary" aria-label="Current shared trip status">
+            <div>
+              <small>Status</small>
+              <strong id="currentTripStatus">Underway</strong>
+            </div>
+            <div>
+              <small>Destination</small>
+              <strong id="currentTripDestination">Barnegat Ridge South</strong>
+            </div>
+            <div class="current-trip-note">
+              <small>Latest note</small>
+              <strong id="currentTripNote">Late afternoon, exact time TBD</strong>
+            </div>
           </div>
-          <form id="logForm" class="log-form">
+          <p class="trip-update-help">One save updates the live trip and adds a timestamped entry to the Board Log.</p>
+          <form id="tripUpdateForm" class="log-form" aria-label="Add trip update">
+            <label class="trip-update-text">
+              Update
+              <input id="tripUpdateInput" type="text" maxlength="160" placeholder="No fish after two hours at Ridge South" required />
+            </label>
             <label>
-              Moment
-              <input id="momentInput" name="moment" type="text" placeholder="First tuna hit on the troll" required />
+              Status
+              <select id="tripStatusControl">
+                <option value="pre-departure">Pre-departure</option>
+                <option value="underway" selected>Underway</option>
+                <option value="fishing">Fishing</option>
+                <option value="heading-home">Heading home</option>
+                <option value="recap">Recap</option>
+              </select>
+            </label>
+            <label>
+              Destination
+              <select id="destinationControl">
+                <option>Manasquan Inlet</option>
+                <option selected>Barnegat Ridge South</option>
+                <option>Barnegat Ridge North</option>
+                <option>Seaside Lumps</option>
+                <option>Home</option>
+              </select>
             </label>
             <label>
               Type
-              <select id="typeInput" name="type">
+              <select id="typeInput">
+                <option selected>Boat life</option>
                 <option>Tuna</option>
                 <option>Mahi mahi</option>
                 <option>Weather</option>
                 <option>Mark</option>
                 <option>Quote</option>
-                <option>Boat life</option>
               </select>
             </label>
-            <label>
-              Method
-              <select id="methodInput" name="method">
-                <option>Trolling</option>
-                <option>Jigging</option>
-                <option>Running</option>
-                <option>Dockside</option>
-                <option>Other</option>
-              </select>
-            </label>
-            <label>
-              Angler
-              <select id="anglerInput" name="angler">
-                <option value="">Crew</option>
-                <option>John</option>
-                <option>Bill</option>
-                <option>Pete</option>
-                <option>Phil</option>
-                <option>Will</option>
-              </select>
-            </label>
-            <button class="primary-action full" type="submit">Add to shared log</button>
+            <div class="catch-details" id="catchDetails" hidden aria-hidden="true">
+              <label>
+                Method
+                <select id="methodInput">
+                  <option>Trolling</option>
+                  <option>Jigging</option>
+                  <option>Running</option>
+                  <option>Dockside</option>
+                  <option>Other</option>
+                </select>
+              </label>
+              <label>
+                Angler
+                <select id="anglerInput">
+                  <option value="">Crew</option>
+                  <option>John</option>
+                  <option>Bill</option>
+                  <option>Pete</option>
+                  <option>Phil</option>
+                  <option>Will</option>
+                </select>
+              </label>
+            </div>
+            <button class="primary-action full" id="saveTripUpdateButton" type="submit" disabled>Save to trip log</button>
+            <p class="sync-error" id="syncError" hidden></p>
           </form>
           <p class="official-log-note">
             Official fish catches go on John's Waterpoof app first. This board is public and collaborative,

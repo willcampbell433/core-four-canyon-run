@@ -1211,23 +1211,6 @@ option {
   font-weight: 800;
 }
 
-.required-banner.hms-banner {
-  border-color: rgba(109, 244, 212, 0.45);
-  background:
-    linear-gradient(135deg, rgba(109, 244, 212, 0.13), transparent 60%),
-    var(--surface);
-}
-
-.required-banner.hms-banner small {
-  color: var(--seafoam);
-}
-
-.required-banner.hms-banner a {
-  border-color: rgba(109, 244, 212, 0.72);
-  background: var(--seafoam);
-  color: #04101d;
-}
-
 .checklist {
   margin-top: 16px;
   padding: 24px;

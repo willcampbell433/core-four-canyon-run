@@ -1,118 +1,184 @@
-const departure = new Date("2026-08-08T05:15:00-04:00");
-const roughReturn = new Date("2026-08-08T18:00:00-04:00");
-const storageKey = "fab-five-aug-8-2026-log-v1";
+const departure = new Date("2026-07-03T12:00:00-04:00");
+const roughReturn = new Date("2026-07-04T16:00:00-04:00");
+const storageKey = "core-four-canyon-run-log-v2";
 
 const points = {
-  manorside: {
-    lat: 40.0644,
-    lon: -74.0875,
-    label: "Manorside dock",
-    note: "Lines off at 5:15 AM. Five aboard and moving before sunrise.",
-  },
-  jordanRoad: {
-    lat: 40.0613,
-    lon: -74.0922,
-    label: "Jordan Road bridge",
-    note: "Target the 5:30 AM opening. Captain and bridge tender control the actual transit.",
-  },
-  inlet: {
-    lat: 39.7617,
-    lon: -74.1117,
-    label: "Barnegat Inlet",
-    note: "Transit point only. Confirm tide, visibility, traffic, and inlet conditions onboard.",
-  },
-  ridgeSouth: {
-    lat: 39.646433,
-    lon: -73.783583,
-    label: "Barnegat Ridge South",
-    note: "First fishing stop. Work the southern notch and nearby drop if bait is present.",
-  },
-  ridgeNorth: {
-    lat: 39.703383,
-    lon: -73.7993,
-    label: "Barnegat Ridge North",
-    note: "Second stop. Broader tabletop with gullies on either side.",
-  },
-  seasideLumps: {
-    lat: 39.9169,
-    lon: -73.900767,
-    label: "Seaside Lumps",
-    note: "Final planned ground. Stay mobile and follow bluefish, squid, birds, whales, and tuna marks.",
-  },
+  brick: { lat: 40.0649, lon: -74.0881, label: "John's dock", note: "Departed 12:00 PM off the Metedeconk. Jordan Road bridge opened at 12:30 PM (opens on the half hour)." },
+  inlet: { lat: 39.7614, lon: -74.1031, label: "Barnegat Inlet (Barnegat Light)", note: "Brielle Bridge closed for extreme heat, so we ran south down the bay. Cleared Barnegat Light ~2:00 PM, then pointed southeast." },
+  shelf: { lat: 39.6, lon: -73.35, label: "Mid-run", note: "Water warms and deepens fast past the 30-fathom line." },
+  canyon: { lat: 38.9917, lon: -72.7, label: "South Toms Canyon", note: "First stop: South Toms 500-fathom tip. ETA ~6:00 PM. Troll the edge, watch the temp break, jig marks on the wall." },
 };
 
-const route = [
-  points.manorside,
-  points.jordanRoad,
-  points.inlet,
-  points.ridgeSouth,
-  points.ridgeNorth,
-  points.seasideLumps,
-];
+const route = [points.brick, points.inlet, points.shelf, points.canyon];
 
-const crew = ["John", "Bill", "Pete", "Phil", "Will"];
+const crew = ["John", "Bill", "Will"];
 
 const onboardConditions = {
-  waterTempF: null,
+  waterTempF: 76.9,
   source: "John's SIMRAD",
-  observed: "waiting on the first onboard reading",
+  observed: "Jul 3, ~4:45 PM",
 };
 
 const weatherFallback = {
   day1: {
-    head: "Ridge South model slow - use NOAA/Windy",
+    head: "Model feed slow - check NOAA/Windy",
     metrics: [
-      ["Ground", "Barnegat Ridge South"],
-      ["Plan", "Watch bait, birds, bluefish, whales, and marks"],
-      ["Primary", "Use onboard instruments until data returns"],
+      ["Water", "SIMRAD 76.9°F"],
+      ["Plan", "Watch temp breaks, weedlines, birds, and bait"],
+      ["Primary source", "Use onboard instruments until data returns"],
     ],
   },
   day2: {
-    head: "Seaside model slow - use NOAA/Windy",
+    head: "Model feed slow - use offshore links",
     metrics: [
-      ["Ground", "Seaside Lumps"],
-      ["Forecast", "Use NOAA point forecast + NDBC 44091"],
+      ["Forecast", "Use NOAA canyon forecast + Windy below"],
+      ["Tides", "Metedeconk tides still listed separately"],
       ["Reminder", "Official catches go to Waterpoof first"],
     ],
   },
 };
 
-const offshoreSpots = [];
-
-const seedEntries = [
+const offshoreSpots = [
   {
-    time: "Aug 8, 5:15 AM",
-    type: "Plan",
-    method: "Running",
-    moment: "Planned departure from Manorside. John, Bill, Pete, Phil, and Will aboard.",
+    lat: 39.6826,
+    lon: -72.4811,
+    label: "Hudson Canyon",
+    type: "Canyon",
+    note: "Major canyon north of Toms. Long run, serious structure.",
   },
   {
-    time: "Aug 8, 5:30 AM",
-    type: "Plan",
-    method: "Running",
-    moment: "Target the Jordan Road bridge opening, then run south through the bay toward Barnegat Inlet.",
+    lat: 38.9,
+    lon: -72.5833,
+    label: "South Toms 1000 fm tip",
+    type: "Deep edge",
+    note: "Deeper South Toms reference point. Better low-light bigeye/swordfish neighborhood if life stacks deep.",
   },
   {
-    time: "Aug 8, fishing plan",
-    type: "Plan",
-    method: "Other",
-    moment: "Work Barnegat Ridge South, slide to Ridge North, then finish at Seaside Lumps. Life and onboard marks beat the itinerary.",
+    lat: 39.7867,
+    lon: -72.985,
+    label: "Chicken Canyon",
+    type: "Canyon",
+    note: "Midshore canyon water called out for North Jersey bluefin.",
   },
   {
-    time: "Aug 8, before lines in",
-    type: "Plan",
-    method: "Other",
-    moment: "Recheck NOAA bluefin status and marine forecast. Official catches go on John's Waterpoof app first; NOAA reporting follows any landed bluefin or dead discard.",
+    lat: 39.6411,
+    lon: -73.0525,
+    label: "Triple Wrecks",
+    type: "Wreck area",
+    note: "Known tuna neighborhood east of Barnegat.",
+  },
+  {
+    lat: 39.8821,
+    lon: -72.6457,
+    label: "Bacardi Wreck",
+    type: "Wreck",
+    note: "Durley Chine wreck, roughly 65 nm east of Manasquan.",
   },
 ];
 
-const removedSeedMoments = new Set();
+const seedEntries = [
+  {
+    time: "Jul 3, 12:00 PM",
+    type: "Dockside",
+    method: "Running",
+    moment: "Push off from Brick. Crew loaded, coolers heavy. Guest deckhand clock starts.",
+  },
+  {
+    time: "Jul 3, 12:30 PM",
+    type: "Boat life",
+    method: "Running",
+    moment: "Crossed the Jordan Road bridge in Brick when it opened on the half hour. Brielle Bridge closed for extreme heat, so we ran south down the bay instead.",
+  },
+  {
+    time: "Jul 3, 2:00 PM",
+    type: "Boat life",
+    method: "Running",
+    moment: "Cleared Barnegat Light and pointed southeast. A little under 4 hours to Toms Canyon, ~6:00 PM ETA.",
+  },
+  {
+    time: "Jul 3, ~3 PM",
+    type: "Boat life",
+    method: "Running",
+    moment: "Starlink dropped past 15 nm out — 'unsupported location.' Roam unlimited stops at 15 nm; enabled Ocean Mode ($2/GB) in the app and were back online in 10. John FaceTimed Heidi. Off to the races.",
+  },
+  {
+    time: "Jul 3, pre-bite",
+    type: "Boat life",
+    method: "Other",
+    moment: "Official catches go on John's Waterpoof app first so the fish are publicly logged. This board is for fun, and Waterpoof activity can help steer moves if nearby boats light up.",
+  },
+  {
+    time: "Jul 3, ~4:45 PM",
+    type: "Conditions",
+    method: "Other",
+    moment: "John's SIMRAD showed 76.9°F ocean water. That onboard reading is better than the modeled SST; NDBC 44066's current feed was unreachable.",
+  },
+  {
+    time: "Jul 3, 6:46 PM",
+    type: "Tuna",
+    method: "Trolling",
+    angler: "John",
+    moment: "First line in at 5:46 PM. Two hits right away: John reels in a 60 lb yellowfin while Will works a bigger fish that gets close to the boat before snapping the line. Big yellowfin to kick off the canyon bite.",
+  },
+  {
+    time: "Jul 3, 8:00 PM",
+    type: "Tuna",
+    method: "Trolling",
+    angler: "John",
+    moment: "Eight rods went back in, then the cabin break lasted about five minutes before two rods hit. John reeled in a fat 60 lb yellowfin from the stern rod holder. Another yellowfin in the boat.",
+  },
+  {
+    time: "Jul 3, 8:01 PM",
+    type: "Tuna",
+    method: "Trolling",
+    angler: "Will",
+    moment: "At the same time, Will had a yellowfin on and waited for John and Bill to gaff the first fish. Then John gaffed Will's fish for the third yellowfin in the boat. Three fish in about 90 minutes, icebox filled by 7:30.",
+  },
+  {
+    time: "Jul 3, 9:00 PM",
+    type: "Weather",
+    method: "Other",
+    moment: "Will called Conor, who reported 30 mph winds back in Point Pleasant with trees blowing around. Good news: the storm looks like it will pass west of the boat. The crew is about as far south as Avalon and roughly 100 miles offshore, settling in for the night shift.",
+  },
+  {
+    time: "Jul 4, 6:28 AM",
+    type: "Tuna",
+    method: "Trolling",
+    angler: "Will",
+    moment: "Up at 4:45 AM with eight lines in the water. Sunrise at 5:20 AM and Will climbs the tower to look for signs of life. John radios his buddy Mark DiBlasio, trolling nearby. About 15 minutes later a rod hits and Will reels in a yellowfin. Fish on board at 6:28 AM. Four tuna in the box.",
+  },
+  {
+    time: "Jul 4, 7:38 AM",
+    type: "Tuna",
+    method: "Trolling",
+    angler: "John",
+    moment: "All eight lines back down at 7:00 AM and two rods hit immediately. John and Will strap into the fighting harnesses and pull the fish toward the boat. Bill goes to gaff Will's fish, slips, and loses the gaff and the fish in the water. No fish for Will. Will grabs a new gaff and lands John's fish at 7:38 AM, his first career gaffed fish. Another tuna for John, and it's a fatty. Five tuna in the box.",
+  },
+  {
+    time: "Jul 4, 8:15 AM",
+    type: "Boat life",
+    method: "Running",
+    moment: "By 8:15 AM the crew calls it. Enough fish, worn out from fighting them, and turning around for the roughly five-hour run back home.",
+  },
+];
+
+const removedSeedMoments = new Set([
+  "Check Windy and NOAA before the long part of the run.",
+  "Spread out, eyes up, wait for the chaos.",
+  "First line in the water at 5:46 p.m. Immediately get two hits. Jon reels in a 60 lb yellowfin tuna while Will starts reeling in a big fish. We get it close to the boat. He snaps the line. It pulled out all the line. We eventually lost it but a big yellowfin tuna to kick off the day.",
+  "We put eight rods back in the water then went in the cabin to relax for a few minutes.About five minutes later two rods hit. John reeled in a fat 60 lb yellowfin from the stern rod holder. Another yellowfin in the boat ",
+  "At the same time Will had a yellowfin on and reeled it in but waited for John and Bill to gaff the first fish. After that was done John gaffed the yellowfin for the third yellowfin in the boat. That's three fish in just one hour and thirty minutes on the water. By 7:30 we filled the icebox with three yellowfins ",
+]);
 
 const tideFallback = [
-  { t: "2026-08-08 03:55", type: "H" },
-  { t: "2026-08-08 10:02", type: "L" },
-  { t: "2026-08-08 16:26", type: "H" },
-  { t: "2026-08-08 23:23", type: "L" },
+  { t: "2026-07-03 00:29", type: "H" },
+  { t: "2026-07-03 06:59", type: "L" },
+  { t: "2026-07-03 13:08", type: "H" },
+  { t: "2026-07-03 18:56", type: "L" },
+  { t: "2026-07-04 01:07", type: "H" },
+  { t: "2026-07-04 07:33", type: "L" },
+  { t: "2026-07-04 13:49", type: "H" },
+  { t: "2026-07-04 19:34", type: "L" },
 ];
 
 const els = {
@@ -202,7 +268,7 @@ function formatBoardLogExport(entries) {
     const angler = entry.angler ? ` / ${entry.angler}` : "";
     return `- ${entry.time}: ${entry.moment} (${entry.type} / ${entry.method}${angler})`;
   });
-  return `The Fab Five | Aug 8, 2026 board log\n\n${lines.join("\n")}\n\nRaw JSON:\n${JSON.stringify(entries, null, 2)}`;
+  return `Core Four Canyon Run board log\n\n${lines.join("\n")}\n\nRaw JSON:\n${JSON.stringify(entries, null, 2)}`;
 }
 
 async function copyBoardLog() {
@@ -256,7 +322,7 @@ function renderTimeline() {
 
   const catchCount = entries.filter((entry) => /tuna|mahi/i.test(entry.type)).length;
   els.catchCount.textContent = String(catchCount);
-  els.replacementGrade.textContent = catchCount > 0 ? "Fish on board" : "Lines not in yet";
+  els.replacementGrade.textContent = catchCount > 0 ? "Trending useful" : "Pending sea trial";
   renderTally(entries);
 }
 
@@ -293,7 +359,7 @@ function nmBetween(a, b) {
 function updateEta(remainingNm, speedMs) {
   if (!els.etaReadout) return;
   if (remainingNm < 1) {
-    els.etaReadout.textContent = "At Seaside Lumps - follow the captain's call.";
+    els.etaReadout.textContent = "At South Toms Canyon - lines in.";
     return;
   }
   const kt = Number.isFinite(speedMs) && speedMs !== null ? speedMs * 1.94384 : null;
@@ -306,7 +372,7 @@ function updateEta(remainingNm, speedMs) {
     const clock = eta.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
     etaText = ` | ${h}h ${String(m).padStart(2, "0")}m out, ETA ${clock}`;
   }
-  els.etaReadout.textContent = `${remainingNm.toFixed(1)} nm to Seaside Lumps${etaText}`;
+  els.etaReadout.textContent = `${remainingNm.toFixed(1)} nm to South Toms Canyon${etaText}`;
 }
 
 function initMap() {
@@ -348,8 +414,26 @@ function initMap() {
     lineCap: "round",
   }).addTo(map);
 
+  const spotTooltip = {
+    "Hudson Canyon": { direction: "right", offset: [10, 0] },
+    "South Toms 1000 fm tip": { direction: "right", offset: [10, 0] },
+    "Chicken Canyon": { direction: "left", offset: [-10, 0] },
+    "Triple Wrecks": { direction: "bottom", offset: [0, 10] },
+    "Bacardi Wreck": { direction: "top", offset: [0, -10] },
+  };
+
+  // Canyon halo, non-interactive so it never eats clicks meant for the South Toms pin.
+  L.circle([points.canyon.lat, points.canyon.lon], {
+    radius: 22000,
+    color: "#ff8d4d",
+    weight: 1.5,
+    fillColor: "#ff8d4d",
+    fillOpacity: 0.12,
+    interactive: false,
+  }).addTo(map);
+
   offshoreSpots.forEach((spot) => {
-    const tip = { direction: "right", offset: [10, 0] };
+    const tip = spotTooltip[spot.label] || { direction: "right", offset: [10, 0] };
     L.circleMarker([spot.lat, spot.lon], {
       radius: spot.type === "Canyon" ? 8 : 7,
       color: "#f6fbff",
@@ -364,18 +448,18 @@ function initMap() {
 
   route.forEach((p, i) => {
     const isEnd = i === 0 || i === route.length - 1;
-    const isDestination = i === route.length - 1;
+    const isCanyon = i === route.length - 1;
     const marker = L.circleMarker([p.lat, p.lon], {
       radius: isEnd ? 10 : 7,
       color: "#04111d",
       weight: 3,
-      fillColor: isDestination ? "#ff8d4d" : i === 0 ? "#6cbcff" : "#6df4d4",
+      fillColor: isCanyon ? "#ff8d4d" : i === 0 ? "#6cbcff" : "#6df4d4",
       fillOpacity: 1,
     })
       .addTo(map)
       .bindPopup(`<strong>${p.label}</strong><br>${p.note}`);
-    if (isDestination) {
-      marker.bindTooltip("Seaside Lumps", { permanent: true, direction: "right", offset: [12, 0] });
+    if (isCanyon) {
+      marker.bindTooltip("South Toms Canyon", { permanent: true, direction: "right", offset: [12, 0] });
     }
   });
 
@@ -450,7 +534,7 @@ function initLocationPin(map, routeLatLngs) {
     els.locationStatus.textContent =
       `Live: ${latitude.toFixed(4)}, ${longitude.toFixed(4)} (±${Math.round(accuracy)} m)${knots}${course}`;
 
-    updateEta(nmBetween({ lat: latitude, lon: longitude }, points.seasideLumps), speed);
+    updateEta(nmBetween({ lat: latitude, lon: longitude }, points.canyon), speed);
     locationMarker.bindPopup(
       `<strong>Ofishal Business</strong><br>${latitude.toFixed(4)}, ${longitude.toFixed(4)}<br>GPS accuracy: ~${Math.round(accuracy)} m`,
     );
@@ -543,11 +627,7 @@ function moonPhase(date) {
 }
 
 function formatClock(iso) {
-  return new Date(iso).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "America/New_York",
-  });
+  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
 }
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = 9000) {
@@ -572,118 +652,70 @@ function renderWeatherFallback() {
 }
 
 async function refreshWeather() {
-  const date = "2026-08-08";
-  const locations = [
-    { point: points.ridgeSouth, head: els.day1Head, list: els.day1Metrics },
-    { point: points.seasideLumps, head: els.day2Head, list: els.day2Metrics },
-  ];
+  const { lat, lon } = points.canyon;
+  const dates = ["2026-07-03", "2026-07-04"];
+  const windUrl =
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+    `&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m&daily=sunrise,sunset` +
+    `&wind_speed_unit=kn&timezone=America%2FNew_York&start_date=${dates[0]}&end_date=${dates[1]}`;
+  const marineUrl =
+    `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}` +
+    `&hourly=wave_height,wave_period&timezone=America%2FNew_York&start_date=${dates[0]}&end_date=${dates[1]}`;
 
   try {
-    const forecasts = await Promise.all(
-      locations.map(async ({ point, head, list }) => {
-        const windUrl =
-          `https://api.open-meteo.com/v1/forecast?latitude=${point.lat}&longitude=${point.lon}` +
-          `&hourly=wind_speed_10m,wind_gusts_10m,wind_direction_10m&daily=sunrise,sunset` +
-          `&wind_speed_unit=kn&timezone=America%2FNew_York&start_date=${date}&end_date=${date}`;
-        const marineUrl =
-          `https://marine-api.open-meteo.com/v1/marine?latitude=${point.lat}&longitude=${point.lon}` +
-          `&hourly=wave_height,wave_period&timezone=America%2FNew_York&start_date=${date}&end_date=${date}`;
-        const [windRes, marineRes] = await Promise.all([
-          fetchWithTimeout(windUrl, {}, 9000),
-          fetchWithTimeout(marineUrl, {}, 9000),
-        ]);
-        if (!windRes.ok || !marineRes.ok) throw new Error("weather fetch failed");
-        return {
-          head,
-          list,
-          windData: await windRes.json(),
-          marineData: await marineRes.json(),
-        };
-      }),
-    );
+    const [windRes, marineRes] = await Promise.all([
+      fetchWithTimeout(windUrl, {}, 9000),
+      fetchWithTimeout(marineUrl, {}, 9000),
+    ]);
+    if (!windRes.ok || !marineRes.ok) throw new Error("weather fetch failed");
+    const windData = await windRes.json();
+    const marineData = await marineRes.json();
 
-    forecasts.forEach(({ head, list, windData, marineData }) => {
+    const wTimes = windData.hourly.time;
+    const mTimes = marineData.hourly.time;
+
+    [
+      { head: els.day1Head, list: els.day1Metrics, date: dates[0] },
+      { head: els.day2Head, list: els.day2Metrics, date: dates[1] },
+    ].forEach(({ head, list, date }) => {
       renderWeatherDay(
         head,
         list,
-        daySlice(windData.hourly.time, windData.hourly.wind_speed_10m, date),
-        daySlice(windData.hourly.time, windData.hourly.wind_gusts_10m, date),
-        daySlice(windData.hourly.time, windData.hourly.wind_direction_10m, date),
-        daySlice(marineData.hourly.time, marineData.hourly.wave_height, date),
-        daySlice(marineData.hourly.time, marineData.hourly.wave_period, date),
+        daySlice(wTimes, windData.hourly.wind_speed_10m, date),
+        daySlice(wTimes, windData.hourly.wind_gusts_10m, date),
+        daySlice(wTimes, windData.hourly.wind_direction_10m, date),
+        daySlice(mTimes, marineData.hourly.wave_height, date),
+        daySlice(mTimes, marineData.hourly.wave_period, date),
       );
     });
 
-    const windData = forecasts[0].windData;
     const moon = moonPhase(departure);
     els.sunMoonList.innerHTML = `
-      <li><strong>Depart</strong> 5:15 AM, before sunrise</li>
-      <li><strong>Sunrise Aug 8</strong> ${formatClock(windData.daily.sunrise[0])}</li>
-      <li><strong>Sunset Aug 8</strong> ${formatClock(windData.daily.sunset[0])}</li>
+      <li><strong>Sunset Jul 3</strong> ${formatClock(windData.daily.sunset[0])}</li>
+      <li><strong>Sunrise Jul 4</strong> ${formatClock(windData.daily.sunrise[1])}</li>
+      <li><strong>Sunset Jul 4</strong> ${formatClock(windData.daily.sunset[1])}</li>
       <li><strong>Moon</strong> ${moon.name}, ${moon.illumination}% lit</li>
     `;
   } catch {
     renderWeatherFallback();
     const moon = moonPhase(departure);
     els.sunMoonList.innerHTML = `
-      <li><strong>Depart</strong> 5:15 AM, before sunrise</li>
-      <li><strong>Sunrise Aug 8</strong> ~6:01 AM</li>
-      <li><strong>Sunset Aug 8</strong> ~8:00 PM</li>
+      <li><strong>Sunset Jul 3</strong> ~8:30 PM</li>
+      <li><strong>Sunrise Jul 4</strong> ~5:35 AM</li>
       <li><strong>Moon</strong> ${moon.name}, ${moon.illumination}% lit</li>
     `;
   }
 }
 
-/* ---------- Live buoy (NDBC 44091 Barnegat) ---------- */
+/* ---------- Live buoy (NDBC 44066 Texas Tower) ---------- */
 
 async function refreshBuoy() {
   if (!els.buoyHead) return;
-  const { lat, lon } = points.seasideLumps;
-  try {
-    const stationUrl = "https://api.weather.gov/stations/44091/observations/latest";
-    const marineUrl =
-      `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}` +
-      `&current=sea_surface_temperature,wave_height&timezone=America%2FNew_York`;
-    const windUrl =
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-      `&current=wind_speed_10m,wind_direction_10m,wind_gusts_10m&wind_speed_unit=kn&timezone=America%2FNew_York`;
-    const [stationRes, marineRes, windRes] = await Promise.all([
-      fetchWithTimeout(stationUrl, { headers: { Accept: "application/geo+json" } }, 8000),
-      fetchWithTimeout(marineUrl, {}, 8000),
-      fetchWithTimeout(windUrl, {}, 8000),
-    ]);
-    if (!stationRes.ok || !marineRes.ok || !windRes.ok) throw new Error("conditions request failed");
-
-    const station = (await stationRes.json()).properties;
-    const marine = (await marineRes.json()).current;
-    const wind = (await windRes.json()).current;
-    const airC = station.temperature?.value;
-    const airF = airC === null || airC === undefined ? null : (airC * 9) / 5 + 32;
-    const waterC = marine.sea_surface_temperature;
-    const waterF = waterC === null || waterC === undefined ? null : (waterC * 9) / 5 + 32;
-    const waveM = marine.wave_height;
-    const observed = station.timestamp
-      ? new Date(station.timestamp).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-      : "latest report";
-
-    els.buoyHead.textContent = waterF === null ? "Live grounds conditions" : `${waterF.toFixed(1)}°F model SST`;
-    els.buoyMetrics.innerHTML = `
-      <li><strong>NDBC air</strong> ${airF === null ? "n/a" : `${airF.toFixed(1)}°F`}</li>
-      <li><strong>Model SST</strong> ${waterF === null ? "n/a" : `${waterF.toFixed(1)}°F`}</li>
-      <li><strong>Waves</strong> ${waveM === null || waveM === undefined ? "n/a" : `${(waveM * 3.28084).toFixed(1)} ft`}</li>
-      <li><strong>Wind</strong> ${compass(wind.wind_direction_10m)} ${Math.round(wind.wind_speed_10m)} kt</li>
-      <li><strong>Gusts</strong> to ${Math.round(wind.wind_gusts_10m)} kt</li>
-    `;
-    els.buoyNote.textContent =
-      `NDBC 44091 air observed at ${observed}; water, waves, and wind are modeled at Seaside Lumps. ` +
-      "Use the linked NDBC page and onboard instruments for the captain's final check.";
-  } catch {
-    await buoyFallback();
-  }
+  await buoyFallback();
 }
 
 async function buoyFallback() {
-  const { lat, lon } = points.seasideLumps;
+  const { lat, lon } = points.canyon;
   try {
     const marineUrl =
       `https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}` +
@@ -707,7 +739,7 @@ async function buoyFallback() {
     els.buoyHead.textContent = hasOnboardWater
       ? `${onboardConditions.waterTempF.toFixed(1)}°F water`
       : waterF === null
-        ? "Live Seaside conditions"
+        ? "Live canyon conditions"
         : `${waterF.toFixed(1)}°F water`;
     els.buoyMetrics.innerHTML = `
       <li><strong>SIMRAD</strong> ${hasOnboardWater ? `${onboardConditions.waterTempF.toFixed(1)}°F` : "n/a"}</li>
@@ -718,15 +750,12 @@ async function buoyFallback() {
     `;
     els.buoyNote.textContent =
       `${onboardConditions.source} reading from ${onboardConditions.observed}. ` +
-      "Waves and wind are modeled Seaside Lumps conditions (Open-Meteo); buoy 44091's current feed was unreachable.";
+      "Waves/wind are modeled canyon conditions (Open-Meteo); buoy 44066's current feed was unreachable.";
   } catch {
-    const hasOnboardWater = onboardConditions.waterTempF !== null && onboardConditions.waterTempF !== undefined;
-    els.buoyHead.textContent = hasOnboardWater
-      ? `${onboardConditions.waterTempF.toFixed(1)}°F water`
-      : "Conditions feed slow";
+    els.buoyHead.textContent = `${onboardConditions.waterTempF.toFixed(1)}°F water`;
     renderMetricList(els.buoyMetrics, [
-      ["SIMRAD", hasOnboardWater ? `${onboardConditions.waterTempF.toFixed(1)}°F` : "waiting on reading"],
-      ["Buoy 44091", "unreachable"],
+      ["SIMRAD", `${onboardConditions.waterTempF.toFixed(1)}°F`],
+      ["Buoy 44066", "unreachable"],
       ["Model feed", "slow/offline"],
     ]);
     els.buoyNote.textContent =
@@ -746,8 +775,8 @@ function formatTime(time) {
 
 function renderTides(predictions) {
   const grouped = predictions.reduce((days, prediction) => {
-    const [, time] = prediction.t.split(" ");
-    const label = "Aug 8";
+    const [date, time] = prediction.t.split(" ");
+    const label = date === "2026-07-03" ? "Jul 3" : "Jul 4";
     days[label] = [...(days[label] || []), `${prediction.type === "H" ? "H" : "L"} ${formatTime(time)}`];
     return days;
   }, {});
@@ -758,7 +787,7 @@ function renderTides(predictions) {
 
 async function refreshTides() {
   const url =
-    "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=fab-five-trip-board&begin_date=20260808&end_date=20260808&datum=MLLW&station=8533615&time_zone=lst_ldt&units=english&interval=hilo&format=json";
+    "https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=core-four-canyon-run&begin_date=20260703&end_date=20260704&datum=MLLW&station=8532703&time_zone=lst_ldt&units=english&interval=hilo&format=json";
   try {
     const response = await fetchWithTimeout(url, {}, 8000);
     if (!response.ok) throw new Error("NOAA tide request failed");

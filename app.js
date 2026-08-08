@@ -1084,7 +1084,10 @@ async function setupSharedPhotos(client, trip) {
   });
 
   setPhotoAvailability(navigator.onLine);
-  window.addEventListener("online", () => setPhotoAvailability(true));
+  window.addEventListener("online", () => {
+    setPhotoAvailability(true);
+    els.photoUploadStatus.textContent = "";
+  });
   window.addEventListener("offline", () => {
     setPhotoAvailability(false);
     els.photoUploadStatus.textContent = "Photo uploads are offline. Existing photos remain available.";

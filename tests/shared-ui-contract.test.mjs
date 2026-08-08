@@ -153,6 +153,11 @@ test("trip gallery exposes one accessible shared photo upload pathway", async ()
   assert.match(html, /id="photoCaptionInput"[^>]+maxlength="240"/);
   assert.match(html, /id="uploadPhotosButton"[^>]+type="button"/);
   assert.match(html, /id="photoUploadStatus"[^>]+role="status"/);
+  assert.match(
+    html,
+    /id="photoUploadPanel"[\s\S]*<\/div>\s*<p class="photo-upload-status" id="photoUploadStatus"/,
+    "upload status should remain visible when the selection panel is hidden",
+  );
   assert.match(html, /id="sharedPhotoList"/);
   assert.match(html, /data-static-photo/);
   assert.doesNotMatch(archiveHtml, /photoPicker|photoUploadPanel|sharedPhotoList/);
@@ -173,11 +178,14 @@ test("shared photo flow uses Supabase Storage, realtime metadata, and confirmed 
 });
 
 test("shared photo captions render through textContent and uploads report partial failure", async () => {
-  const app = await read("app.js");
+  const [app, styles] = await Promise.all([read("app.js"), read("styles.css")]);
 
   assert.match(app, /caption[^\n]+textContent/);
   assert.doesNotMatch(app, /innerHTML[^\n]+caption|caption[^\n]+innerHTML/);
   assert.match(app, /uploadedCount/);
   assert.match(app, /failedMessages/);
   assert.match(app, /removeUploadedObject/);
+  assert.match(app, /window\.addEventListener\("online"[\s\S]{0,220}photoUploadStatus\.textContent = ""/);
+  assert.match(styles, /\.gallery-photo > a \{[\s\S]*aspect-ratio: 4 \/ 3/);
+  assert.match(styles, /\.gallery-photo > a img \{[\s\S]*height: 100%/);
 });

@@ -1336,12 +1336,15 @@ small {
 }
 
 .photo-upload-status {
-  grid-column: 1 / -1;
   min-height: 1.2em;
-  margin: 0;
+  margin: -8px 0 18px;
   color: var(--muted);
   font-size: 0.86rem;
   font-weight: 800;
+}
+
+.photo-upload-status:empty {
+  display: none;
 }
 
 .gallery-photo {
@@ -1359,12 +1362,23 @@ small {
 .gallery-photo img {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 3;
   object-fit: cover;
+}
+
+.gallery-photo > img {
+  height: auto;
+  aspect-ratio: 4 / 3;
 }
 
 .gallery-photo > a {
   display: block;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+
+.gallery-photo > a img {
+  height: 100%;
+  aspect-ratio: auto;
 }
 
 .shared-photo-meta {

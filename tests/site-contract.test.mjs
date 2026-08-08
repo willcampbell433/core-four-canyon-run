@@ -89,6 +89,30 @@ function loadLocationTracker(app, { hasGeolocation = true } = {}) {
   };
 }
 
+function renderTripClockAt(app, nowIso) {
+  const constantsEnd = app.indexOf("const storageKey");
+  const timerStart = app.indexOf("function renderTimer");
+  const timerEnd = app.indexOf("/* ---------- Trip log ---------- */");
+  assert.ok(constantsEnd > 0 && timerStart > constantsEnd && timerEnd > timerStart);
+
+  const els = {
+    missionStatus: { textContent: "" },
+    days: { textContent: "" },
+    hours: { textContent: "" },
+    minutes: { textContent: "" },
+  };
+  const RealDate = Date;
+  function FixedDate(value) {
+    return new RealDate(value === undefined ? nowIso : value);
+  }
+
+  runInNewContext(
+    `${app.slice(0, constantsEnd)}\n${app.slice(timerStart, timerEnd)}\nrenderTimer();`,
+    { els, Date: FixedDate },
+  );
+  return els;
+}
+
 test("active board contains the Fab Five mission contract", async () => {
   const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
   for (const value of [
@@ -104,6 +128,15 @@ test("active board contains the Fab Five mission contract", async () => {
   }
   assert.match(app, /2026-08-08T05:15:00-04:00/);
   assert.match(app, /fab-five-aug-8-2026-log-v1/);
+});
+
+test("underway trip clock counts elapsed time since departure", async () => {
+  const clock = renderTripClockAt(await read("app.js"), "2026-08-08T06:14:00-04:00");
+
+  assert.equal(clock.missionStatus.textContent, "Time underway");
+  assert.equal(clock.days.textContent, "00");
+  assert.equal(clock.hours.textContent, "00");
+  assert.equal(clock.minutes.textContent, "59");
 });
 
 test("active route lists the confirmed grounds in order", async () => {

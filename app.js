@@ -1,5 +1,5 @@
 const departure = new Date("2026-08-08T05:15:00-04:00");
-const roughReturn = new Date("2026-08-08T18:00:00-04:00");
+const tripDayEnd = new Date("2026-08-09T00:00:00-04:00");
 const storageKey = "fab-five-aug-8-2026-log-v1";
 
 const points = {
@@ -169,10 +169,10 @@ function renderTimer() {
   const now = new Date();
   let diff = departure - now;
 
-  if (now >= departure && now <= roughReturn) {
-    els.missionStatus.textContent = "Trip underway";
-    diff = roughReturn - now;
-  } else if (now > roughReturn) {
+  if (now >= departure && now < tripDayEnd) {
+    els.missionStatus.textContent = "Time underway";
+    diff = now - departure;
+  } else if (now >= tripDayEnd) {
     els.missionStatus.textContent = "Recap mode";
     diff = 0;
   } else {

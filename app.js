@@ -155,6 +155,14 @@ const els = {
   saveTripUpdateButton: document.querySelector("#saveTripUpdateButton"),
   syncState: document.querySelector("#syncState"),
   syncError: document.querySelector("#syncError"),
+  photoPickerAction: document.querySelector("#photoPickerAction"),
+  photoPicker: document.querySelector("#photoPicker"),
+  photoUploadPanel: document.querySelector("#photoUploadPanel"),
+  photoSelectionSummary: document.querySelector("#photoSelectionSummary"),
+  photoCaptionInput: document.querySelector("#photoCaptionInput"),
+  uploadPhotosButton: document.querySelector("#uploadPhotosButton"),
+  photoUploadStatus: document.querySelector("#photoUploadStatus"),
+  sharedPhotoList: document.querySelector("#sharedPhotoList"),
   buoyHead: document.querySelector("#buoyHead"),
   buoyMetrics: document.querySelector("#buoyMetrics"),
   buoyNote: document.querySelector("#buoyNote"),
@@ -806,6 +814,10 @@ async function createSharedClient() {
     return result.data;
   }
 
+  async function removeUploadedObject(storagePath) {
+    unwrap(await supabase.storage.from("trip-photos").remove([storagePath]));
+  }
+
   return {
     async load(slug) {
       const trip = unwrap(await supabase.from("trips").select("*").eq("slug", slug).single());
@@ -830,6 +842,57 @@ async function createSharedClient() {
         unwrap(await supabase.from("trip_state").upsert(mutation.row, { onConflict: "trip_id" }));
       }
     },
+    async listPhotos(tripId) {
+      return unwrap(
+        await supabase.from("trip_photos").select("*").eq("trip_id", tripId).order("created_at", { ascending: false }),
+      );
+    },
+    async uploadPhoto({ id, tripId, storagePath, blob, caption, width, height }) {
+      unwrap(
+        await supabase.storage.from("trip-photos").upload(storagePath, blob, {
+          cacheControl: "31536000",
+          contentType: "image/jpeg",
+          upsert: false,
+        }),
+      );
+      try {
+        return unwrap(
+          await supabase.from("trip_photos").insert({
+            id,
+            trip_id: tripId,
+            storage_path: storagePath,
+            caption: caption || null,
+            width,
+            height,
+          }).select("*").single(),
+        );
+      } catch (error) {
+        try {
+          await removeUploadedObject(storagePath);
+        } catch {
+          // The metadata error is the actionable failure; cleanup can be retried from Supabase.
+        }
+        throw error;
+      }
+    },
+    async deletePhoto(photo) {
+      await removeUploadedObject(photo.storage_path);
+      unwrap(await supabase.from("trip_photos").delete().eq("id", photo.id));
+    },
+    photoUrl(storagePath) {
+      return supabase.storage.from("trip-photos").getPublicUrl(storagePath).data.publicUrl;
+    },
+    subscribePhotos(handler) {
+      const channel = supabase
+        .channel("ofishal-business-photos")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "trip_photos" },
+          (payload) => handler({ table: "trip_photos", ...payload }),
+        )
+        .subscribe();
+      return () => supabase.removeChannel(channel);
+    },
     subscribe(handler) {
       const channel = supabase
         .channel("ofishal-business-board")
@@ -847,6 +910,197 @@ async function createSharedClient() {
       return () => supabase.removeChannel(channel);
     },
   };
+}
+
+function photoErrorMessage(error) {
+  const message = error?.message || String(error || "Photo upload failed.");
+  if (/network|fetch|offline/i.test(message)) return "Connection lost. Reconnect and try the photo upload again.";
+  if (/row-level security|policy/i.test(message)) return "Photo storage permissions are not ready yet.";
+  return message;
+}
+
+function formatPhotoTime(value) {
+  return new Date(value).toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+async function setupSharedPhotos(client, trip) {
+  if (!els.photoPicker || !els.sharedPhotoList) return;
+  if (!client || !trip) {
+    els.photoUploadStatus.textContent = "Shared photo uploads require the live Vercel board.";
+    return;
+  }
+
+  const { buildPhotoPath, preparePhoto, validatePhotoFile } = await import("./photo-utils.js");
+  let photos = [];
+  let selectedFiles = [];
+
+  function setPhotoAvailability(available) {
+    els.photoPicker.disabled = !available;
+    els.photoPickerAction.classList.toggle("is-disabled", !available);
+    els.photoPickerAction.setAttribute("aria-disabled", String(!available));
+  }
+
+  function upsertPhoto(photo) {
+    photos = [photo, ...photos.filter((candidate) => candidate.id !== photo.id)]
+      .sort((left, right) => String(right.created_at).localeCompare(String(left.created_at)));
+  }
+
+  function renderPhotos() {
+    els.sharedPhotoList.querySelectorAll("[data-shared-photo]").forEach((node) => node.remove());
+    photos.forEach((photo) => {
+      const figure = document.createElement("figure");
+      figure.className = "gallery-photo";
+      figure.dataset.sharedPhoto = photo.id;
+
+      const link = document.createElement("a");
+      link.href = client.photoUrl(photo.storage_path);
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      link.setAttribute("aria-label", `Open full-size trip photo from ${formatPhotoTime(photo.created_at)}`);
+
+      const image = document.createElement("img");
+      image.src = link.href;
+      image.alt = photo.caption || "Shared trip photo";
+      image.loading = "lazy";
+      image.width = photo.width;
+      image.height = photo.height;
+      link.append(image);
+
+      const meta = document.createElement("figcaption");
+      meta.className = "shared-photo-meta";
+      const caption = document.createElement("p");
+      caption.textContent = photo.caption || "Trip photo";
+      const timestamp = document.createElement("small");
+      timestamp.textContent = formatPhotoTime(photo.created_at);
+      const deleteButton = document.createElement("button");
+      deleteButton.className = "delete-photo-button";
+      deleteButton.type = "button";
+      deleteButton.dataset.photoDelete = photo.id;
+      deleteButton.textContent = "Delete photo";
+      meta.append(caption, timestamp, deleteButton);
+      figure.append(link, meta);
+      els.sharedPhotoList.append(figure);
+    });
+  }
+
+  function reconcilePhoto(event) {
+    const id = event.eventType === "DELETE" ? event.old?.id : event.new?.id;
+    photos = photos.filter((photo) => photo.id !== id);
+    if (event.eventType !== "DELETE" && event.new) upsertPhoto(event.new);
+    renderPhotos();
+  }
+
+  function updateSelectionSummary() {
+    const count = selectedFiles.length;
+    els.photoSelectionSummary.textContent = count
+      ? `${count} photo${count === 1 ? "" : "s"} selected`
+      : "No photos selected";
+    els.photoUploadPanel.hidden = count === 0;
+  }
+
+  els.photoPicker.addEventListener("change", () => {
+    const failedMessages = [];
+    selectedFiles = Array.from(els.photoPicker.files || []).filter((file) => {
+      const validation = validatePhotoFile(file);
+      if (!validation.valid) failedMessages.push(validation.error);
+      return validation.valid;
+    });
+    updateSelectionSummary();
+    els.photoUploadStatus.textContent = failedMessages.join(" ");
+  });
+
+  els.uploadPhotosButton.addEventListener("click", async () => {
+    if (!selectedFiles.length) return;
+    if (!navigator.onLine) {
+      els.photoUploadStatus.textContent = "Photo uploads need an internet connection. Reconnect and try again.";
+      return;
+    }
+
+    const caption = els.photoCaptionInput.value.trim();
+    const failedMessages = [];
+    const failedFiles = [];
+    let uploadedCount = 0;
+    els.uploadPhotosButton.disabled = true;
+
+    for (const [index, file] of selectedFiles.entries()) {
+      els.photoUploadStatus.textContent = `Preparing photo ${index + 1} of ${selectedFiles.length}...`;
+      try {
+        const { blob, width, height } = await preparePhoto(file);
+        const id = crypto.randomUUID();
+        const storagePath = buildPhotoPath({ tripSlug: trip.slug, id });
+        els.photoUploadStatus.textContent = `Uploading photo ${index + 1} of ${selectedFiles.length}...`;
+        const photo = await client.uploadPhoto({
+          id,
+          tripId: trip.id,
+          storagePath,
+          blob,
+          caption,
+          width,
+          height,
+        });
+        upsertPhoto(photo);
+        renderPhotos();
+        uploadedCount += 1;
+      } catch (error) {
+        failedFiles.push(file);
+        failedMessages.push(`${file.name}: ${photoErrorMessage(error)}`);
+      }
+    }
+
+    selectedFiles = failedFiles;
+    els.uploadPhotosButton.disabled = false;
+    if (!failedFiles.length) {
+      els.photoPicker.value = "";
+      els.photoCaptionInput.value = "";
+    }
+    updateSelectionSummary();
+    els.photoUploadStatus.textContent = failedMessages.length
+      ? `${uploadedCount} uploaded. ${failedMessages.join(" ")}`
+      : `${uploadedCount} photo${uploadedCount === 1 ? "" : "s"} uploaded.`;
+  });
+
+  els.sharedPhotoList.addEventListener("click", async (event) => {
+    const button = event.target.closest("[data-photo-delete]");
+    if (!button) return;
+    const photo = photos.find((candidate) => candidate.id === button.dataset.photoDelete);
+    if (!photo || !confirm("Delete this shared trip photo?")) return;
+
+    button.disabled = true;
+    els.photoUploadStatus.textContent = "Deleting photo...";
+    try {
+      await client.deletePhoto(photo);
+      photos = photos.filter((candidate) => candidate.id !== photo.id);
+      renderPhotos();
+      els.photoUploadStatus.textContent = "Photo deleted.";
+    } catch (error) {
+      button.disabled = false;
+      els.photoUploadStatus.textContent = photoErrorMessage(error);
+    }
+  });
+
+  setPhotoAvailability(navigator.onLine);
+  window.addEventListener("online", () => {
+    setPhotoAvailability(true);
+    els.photoUploadStatus.textContent = "";
+  });
+  window.addEventListener("offline", () => {
+    setPhotoAvailability(false);
+    els.photoUploadStatus.textContent = "Photo uploads are offline. Existing photos remain available.";
+  });
+
+  try {
+    photos = await client.listPhotos(trip.id);
+    renderPhotos();
+    client.subscribePhotos(reconcilePhoto);
+  } catch (error) {
+    setPhotoAvailability(false);
+    els.photoUploadStatus.textContent = photoErrorMessage(error);
+  }
 }
 
 function stableEntryUuid(entry, index) {
@@ -912,6 +1166,7 @@ async function setupSharedBoard() {
   sharedStore.subscribe(renderSharedSnapshot);
   await sharedStore.start();
   els.saveTripUpdateButton.disabled = false;
+  await setupSharedPhotos(client, sharedStore.getSnapshot().trip);
   window.addEventListener("online", () => sharedStore.replayQueue());
 }
 

@@ -5,3 +5,4 @@ shared-config.js
 !.env.example
 .vercel/
 .supabase/
+supabase/.temp/

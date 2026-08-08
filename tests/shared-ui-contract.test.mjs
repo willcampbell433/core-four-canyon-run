@@ -140,3 +140,52 @@ test("July archive remains isolated from shared storage", async () => {
   assert.doesNotMatch(app, /shared-config|shared-store|supabase/i);
   assert.match(app, /core-four-canyon-run-log-v2/);
 });
+
+test("trip gallery exposes one accessible shared photo upload pathway", async () => {
+  const [html, archiveHtml] = await Promise.all([
+    read("index.html"),
+    read("archive/2026-07-03-canyon-run/index.html"),
+  ]);
+
+  assert.match(html, /<label[^>]+for="photoPicker"[^>]*>[\s\S]*Add photos[\s\S]*<\/label>/i);
+  assert.match(html, /<input[^>]+id="photoPicker"[^>]+type="file"[^>]+accept="image\/\*"[^>]+multiple/);
+  assert.match(html, /id="photoUploadPanel"[^>]*hidden/);
+  assert.match(html, /id="photoCaptionInput"[^>]+maxlength="240"/);
+  assert.match(html, /id="uploadPhotosButton"[^>]+type="button"/);
+  assert.match(html, /id="photoUploadStatus"[^>]+role="status"/);
+  assert.match(
+    html,
+    /id="photoUploadPanel"[\s\S]*<\/div>\s*<p class="photo-upload-status" id="photoUploadStatus"/,
+    "upload status should remain visible when the selection panel is hidden",
+  );
+  assert.match(html, /id="sharedPhotoList"/);
+  assert.match(html, /data-static-photo/);
+  assert.doesNotMatch(archiveHtml, /photoPicker|photoUploadPanel|sharedPhotoList/);
+});
+
+test("shared photo flow uses Supabase Storage, realtime metadata, and confirmed delete", async () => {
+  const app = await read("app.js");
+
+  assert.match(app, /import\("\.\/photo-utils\.js"\)/);
+  assert.match(app, /storage\.from\("trip-photos"\)\.upload/);
+  assert.match(app, /from\("trip_photos"\)\.insert/);
+  assert.match(app, /from\("trip_photos"\)\.delete/);
+  assert.match(app, /storage\.from\("trip-photos"\)\.remove/);
+  assert.match(app, /table: "trip_photos"/);
+  assert.match(app, /confirm\("Delete this shared trip photo\?"\)/);
+  assert.match(app, /navigator\.onLine/);
+  assert.doesNotMatch(app, /localStorage[^\n]+photo|photo[^\n]+localStorage/i);
+});
+
+test("shared photo captions render through textContent and uploads report partial failure", async () => {
+  const [app, styles] = await Promise.all([read("app.js"), read("styles.css")]);
+
+  assert.match(app, /caption[^\n]+textContent/);
+  assert.doesNotMatch(app, /innerHTML[^\n]+caption|caption[^\n]+innerHTML/);
+  assert.match(app, /uploadedCount/);
+  assert.match(app, /failedMessages/);
+  assert.match(app, /removeUploadedObject/);
+  assert.match(app, /window\.addEventListener\("online"[\s\S]{0,220}photoUploadStatus\.textContent = ""/);
+  assert.match(styles, /\.gallery-photo > a \{[\s\S]*aspect-ratio: 4 \/ 3/);
+  assert.match(styles, /\.gallery-photo > a img \{[\s\S]*height: 100%/);
+});

@@ -10,4 +10,6 @@ test("README documents Vercel, shared public writes, and local-only fallback", a
   assert.match(readme, /local only/i);
   assert.match(readme, /npm run build/);
   assert.match(readme, /GitHub Pages/i);
+  assert.match(readme, /Supabase Storage/i);
+  assert.match(readme, /photo uploads are online-only/i);
 });

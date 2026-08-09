@@ -185,7 +185,7 @@
           <form id="tripUpdateForm" class="log-form" aria-label="Add trip update">
             <label class="trip-update-text">
               Update
-              <input id="tripUpdateInput" type="text" maxlength="160" placeholder="No fish after two hours at Ridge South" required />
+              <textarea id="tripUpdateInput" maxlength="500" rows="4" placeholder="No fish after two hours at Ridge South" required></textarea>
             </label>
             <label>
               Status
@@ -610,11 +610,7 @@
           <button class="primary-action" id="uploadPhotosButton" type="button">Upload photos</button>
         </div>
         <p class="photo-upload-status" id="photoUploadStatus" role="status" aria-live="polite"></p>
-        <div class="gallery-grid" id="sharedPhotoList">
-          <figure class="gallery-photo" data-static-photo>
-            <img src="assets/ofishal-business-underway.jpg" alt="The Ofishal Business underway in the canal" loading="lazy" />
-          </figure>
-        </div>
+        <div class="gallery-grid" id="sharedPhotoList"></div>
       </section>
 
       <section class="recap-section section-shell" id="recap">

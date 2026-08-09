@@ -53,6 +53,8 @@ test("one trip update form saves the same update to live state and the board log
   const [html, app] = await Promise.all([read("index.html"), read("app.js")]);
 
   assert.match(html, /<form[^>]+id="tripUpdateForm"/);
+  assert.match(html, /<textarea[^>]+id="tripUpdateInput"[^>]+maxlength="500"[^>]*><\/textarea>/);
+  assert.doesNotMatch(html, /<input[^>]+id="tripUpdateInput"/);
   assert.doesNotMatch(html, /id="tripStateForm"|id="logForm"/);
   assert.doesNotMatch(html, /id="saveTripStateButton"|id="returnNoteControl"/);
   assert.equal((html.match(/type="submit"/g) || []).length, 1);
@@ -196,7 +198,7 @@ test("trip gallery exposes one accessible shared photo upload pathway", async ()
     "upload status should remain visible when the selection panel is hidden",
   );
   assert.match(html, /id="sharedPhotoList"/);
-  assert.match(html, /data-static-photo/);
+  assert.doesNotMatch(html, /data-static-photo|ofishal-business-underway\.jpg/);
   assert.doesNotMatch(archiveHtml, /photoPicker|photoUploadPanel|sharedPhotoList/);
 });
 
@@ -207,6 +209,8 @@ test("shared photo flow uses append-only Supabase Storage and realtime metadata"
   assert.match(app, /storage\.from\("trip-photos"\)\.upload/);
   assert.match(app, /from\("trip_photos"\)\.insert/);
   assert.match(app, /table: "trip_photos"/);
+  assert.match(app, /from\("trip_photos"\)[\s\S]{0,120}order\("created_at", \{ ascending: false \}\)/);
+  assert.match(app, /String\(right\.created_at\)\.localeCompare\(String\(left\.created_at\)\)/);
   assert.match(app, /navigator\.onLine/);
   assert.doesNotMatch(app, /deletePhoto|data-photo-delete|photoDelete|removeUploadedObject/);
   assert.doesNotMatch(app, /from\("trip_photos"\)\.delete|storage\.from\("trip-photos"\)\.remove/);

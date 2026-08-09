@@ -1433,7 +1433,8 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   width: 100%;
   min-height: 46px;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -1445,9 +1446,18 @@ select {
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   border-color: var(--seafoam);
   box-shadow: 0 0 0 3px rgba(109, 244, 212, 0.12);
+}
+
+#tripUpdateInput {
+  min-height: 112px;
+  padding: 12px;
+  resize: vertical;
+  font: inherit;
+  line-height: 1.45;
 }
 
 option {

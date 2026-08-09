@@ -18,6 +18,10 @@ const destinationMigrationUrl = new URL(
   "../supabase/migrations/20260808195800_tracker_destinations.sql",
   import.meta.url,
 );
+const tripUpdateLengthMigrationUrl = new URL(
+  "../supabase/migrations/20260809022000_expand_trip_update_length.sql",
+  import.meta.url,
+);
 
 test("migration enforces public CRUD and realtime contracts", async () => {
   const sql = await readFile(migrationUrl, "utf8");
@@ -87,4 +91,12 @@ test("tracker destination migration allows every selectable waypoint", async () 
   ]) {
     assert.match(sql, new RegExp(destination));
   }
+});
+
+test("trip update migration supports the shared 500-character save boundary", async () => {
+  const sql = await readFile(tripUpdateLengthMigrationUrl, "utf8");
+
+  assert.match(sql, /alter table public\.trip_state/i);
+  assert.match(sql, /drop constraint if exists trip_state_return_note_check/i);
+  assert.match(sql, /char_length\(return_note\) between 1 and 500/i);
 });
